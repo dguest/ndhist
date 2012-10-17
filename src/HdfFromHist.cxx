@@ -40,7 +40,8 @@ void dim_atr(H5::DataSet& target, unsigned number, const Dimension& dim)
   DataSpace space(H5S_SCALAR);
   IntType int_type(PredType::NATIVE_INT);
   IntType uint_type(PredType::NATIVE_UINT); 
-  Attribute axis = target.createAttribute(dim.name, uint_type, space);
+  std::string axis_name = dim.name + "_axis"; 
+  Attribute axis = target.createAttribute(axis_name, uint_type, space);
   axis.write(uint_type, &number);
 
   std::string n_bin_name = dim.name + "_bins"; 
