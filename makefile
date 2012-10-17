@@ -49,24 +49,24 @@ PY_LDFLAGS += -shared
 
 # ---- define objects
 # - not-python 
-GEN_OBJ     := 
+GEN_OBJ     := Histogram.o Binners.o
 
 # - python interface
 PY_OBJ       := 
 
 # - command line interface
-EXE_OBJ      := binner.o
+EXE_OBJ      := test.o
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) $(EXE_OBJ)
-ALLOUTPUT    := binner
+ALLOUTPUT    := test
 
 all: $(ALLOUTPUT) 
 
-binner: $(GEN_OBJ:%=$(BIN)/%) $(EXE_OBJ:%=$(BIN)/%)
+test: $(GEN_OBJ:%=$(BIN)/%) $(EXE_OBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) 
 
-$(PYTHON)/_hdroot.so: $(GEN_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
+$(PYTHON)/_ndhist.so: $(GEN_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
 	@mkdir -p $(PYTHON)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(PY_LDFLAGS)
