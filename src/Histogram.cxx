@@ -9,11 +9,11 @@ Histogram::Histogram(const std::vector<Dimension>& dims) :
     throw std::runtime_error("tried to initialize hist with no dimensions");
   }
   typedef std::vector<Dimension> DimVec;
-  DimVec::const_iterator itr = dims.begin(); 
+  DimVec::const_reverse_iterator itr = dims.rbegin(); 
   int n_values = itr->n_bins + 2; 
   m_binner = new LinBinner(itr->name, itr->n_bins, itr->low, itr->high);
   itr++; 
-  for (; itr != dims.end(); itr++) { 
+  for (; itr != dims.rend(); itr++) { 
     m_binner->add_dimension(new LinBinner(itr->name, itr->n_bins, 
 					 itr->low, itr->high)); 
     n_values *= (itr->n_bins + 2); 

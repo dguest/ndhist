@@ -51,6 +51,6 @@ void dim_atr(H5::DataSet& target, unsigned number, const Dimension& dim)
   Attribute max = target.createAttribute(dim.name + "_max", f_type, space); 
   max.write(f_type, &dim.high); 
   Attribute min = target.createAttribute(dim.name + "_min", f_type, space); 
-  max.write(f_type, &dim.low); 
+  min.write(f_type, &dim.low); 
   
 }

@@ -1,5 +1,8 @@
 #include "Histogram.hh"
 #include "Binners.hh"
+#include "HdfFromHist.hh"
+
+#include "H5Cpp.h"
 #include <vector> 
 #include <iostream>
 
@@ -52,6 +55,9 @@ int main(int narg, char* argv[]) {
     }
   }
   std::cout << std::endl; 
+
+  H5::H5File file("test.h5", H5F_ACC_TRUNC); 
+  histToFile(hist, file, "testhist"); 
 		  
   return 0; 
 }
