@@ -17,24 +17,24 @@ int main(int narg, char* argv[]) {
   corrd["z"] = 0.3; 
   std::cout << binner.get_bin(corrd) << std::endl; 
 
-  Dimension x; 
+  Axis x; 
   x.name = "x"; 
   x.n_bins = 10; 
   x.low = 0; 
   x.high = 10; 
 
-  Dimension y; 
+  Axis y; 
   y.name = "y"; 
   y.n_bins = 10; 
   y.low = 0; 
   y.high = 10; 
-  Dimension z; 
+  Axis z; 
   z.name = "z"; 
   z.n_bins = 1; 
   z.low = 0; 
   z.high = 1; 
 
-  std::vector<Dimension> dims; 
+  std::vector<Axis> dims; 
   dims.push_back(x); 
   dims.push_back(y); 
   dims.push_back(z); 

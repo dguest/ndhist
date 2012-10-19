@@ -2,14 +2,14 @@
 #include "Binners.hh"
 #include <stdexcept>
 
-Histogram::Histogram(const std::vector<Dimension>& dims) : 
+Histogram::Histogram(const std::vector<Axis>& dims) : 
   m_dimsensions(dims)
 {
   if (dims.size() == 0) {
     throw std::runtime_error("tried to initialize hist with no dimensions");
   }
-  typedef std::vector<Dimension> DimVec;
-  DimVec::const_reverse_iterator itr = dims.rbegin(); 
+  typedef std::vector<Axis> Axes;
+  Axes::const_reverse_iterator itr = dims.rbegin(); 
   int n_values = itr->n_bins + 2; 
   m_binner = new LinBinner(itr->name, itr->n_bins, itr->low, itr->high);
   itr++; 
@@ -32,7 +32,7 @@ void Histogram::fill(const std::map<std::string, double> input,
   m_values.at(bin) += weight; 
 }
 
-std::vector<Dimension> Histogram::get_dims() const { 
+std::vector<Axis> Histogram::get_axes() const { 
   return m_dimsensions; 
 }
 std::vector<double> Histogram::get_values() const { 

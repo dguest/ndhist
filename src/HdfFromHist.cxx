@@ -8,7 +8,7 @@ int histToFile(const Histogram& hist, H5::CommonFG& file, std::string name){
 
   using namespace H5; 
 
-  std::vector<Dimension> dims = hist.get_dims(); 
+  std::vector<Axis> dims = hist.get_axes(); 
 
   const hsize_t n_dims = dims.size(); 
   hsize_t ds_dims[n_dims]; 
@@ -27,14 +27,14 @@ int histToFile(const Histogram& hist, H5::CommonFG& file, std::string name){
   dataset.write(&data[0], PredType::NATIVE_DOUBLE); 
 
   for (unsigned dim = 0; dim < n_dims; dim++) { 
-    Dimension& dim_info = dims.at(dim); 
+    Axis& dim_info = dims.at(dim); 
     dim_atr(dataset, dim, dim_info); 
   }
   return 1; 
 }
 
 
-void dim_atr(H5::DataSet& target, unsigned number, const Dimension& dim)
+void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim)
 {
   using namespace H5;
   DataSpace space(H5S_SCALAR);

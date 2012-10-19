@@ -7,7 +7,7 @@
 
 class IBinner; 
 
-struct Dimension
+struct Axis
 {
   std::string name;
   int n_bins; 
@@ -18,13 +18,13 @@ struct Dimension
 class Histogram
 {
 public: 
-  Histogram(const std::vector<Dimension>&); 
+  Histogram(const std::vector<Axis>&); 
   ~Histogram(); 
   void fill(const std::map<std::string, double>, double weight = 1); 
-  std::vector<Dimension> get_dims() const; 
+  std::vector<Axis> get_axes() const; 
   std::vector<double> get_values() const; 
 private: 
-  std::vector<Dimension> m_dimsensions; 
+  std::vector<Axis> m_dimsensions; 
   IBinner* m_binner; 
   std::vector<double> m_values; 
 }; 
