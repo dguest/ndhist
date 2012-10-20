@@ -35,7 +35,7 @@ LDFLAGS      := -Wl,-no-undefined
 LIBS         := -L$(COMMON_LIBS) -Wl,-rpath,$(COMMON_LIBS) 
 
 COPT += -D HDF5
-LIBS += -lhdf5_hl_cpp -lhdf5_cpp -lhdf5 -lhdf5_hl
+LIBS += -lhdf5_cpp -lhdf5 
 
 # rootstuff 
 CXXFLAGS     += $(ROOTCFLAGS)
