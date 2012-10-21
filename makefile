@@ -7,6 +7,7 @@ BIN          := bin
 SRC          := src
 INC          := include
 PYTHON       := python
+LIB          := lib
 
 #  set search path
 vpath %.o    $(BIN)
@@ -58,13 +59,18 @@ PY_OBJ       :=
 EXE_OBJ      := test.o
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) $(EXE_OBJ)
-ALLOUTPUT    := test
+ALLOUTPUT    := test $(LIB)/libndhist.so
 
 all: $(ALLOUTPUT) 
 
 test: $(GEN_OBJ:%=$(BIN)/%) $(EXE_OBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) 
+
+$(LIB)/libndhist.so: $(GEN_OBJ:%=$(BIN)/%)
+	@mkdir -p $(LIB)
+	@echo "linking $^ --> $@"
+	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS) -shared
 
 $(PYTHON)/_ndhist.so: $(GEN_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
 	@mkdir -p $(PYTHON)
