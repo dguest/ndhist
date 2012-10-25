@@ -22,6 +22,22 @@ Histogram::Histogram(const std::vector<Axis>& dims) :
   m_values = std::vector<double>(n_values, 0); 
 }
 
+Histogram::Histogram(const Histogram& old): 
+  m_binner(old.m_binner->clone()), 
+  m_dimsensions(old.m_dimsensions), 
+  m_values(old.m_values)
+{ 
+}
+
+Histogram& Histogram::operator=(const Histogram& old)
+{ 
+  delete m_binner; 
+  m_binner = old.m_binner->clone(); 
+  m_dimsensions = old.m_dimsensions; 
+  m_values = old.m_values; 
+  return *this; 
+}
+
 Histogram::~Histogram() 
 {
   delete m_binner; 

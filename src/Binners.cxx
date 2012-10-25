@@ -11,6 +11,37 @@ LinBinner::LinBinner(std::string name, int n_bins, double low, double high):
 {
 }
 
+LinBinner::LinBinner(const LinBinner& o): 
+  m_name(o.m_name), 
+  m_n_bins(o.m_n_bins), 
+  m_low(o.m_low), 
+  m_high(o.m_high), 
+  m_subbinner(0)
+{ 
+  if (o.m_subbinner) { 
+    m_subbinner = o.m_subbinner->clone(); 
+  }
+}
+
+LinBinner& LinBinner::operator=(const LinBinner& o)
+{ 
+  if (o.m_subbinner) { 
+    delete m_subbinner; 
+    m_subbinner = o.m_subbinner->clone(); 
+  }
+
+  m_name = o.m_name;  
+  m_n_bins = o.m_n_bins; 
+  m_low = o.m_low; 
+  m_high = o.m_high;  
+  return *this; 
+}
+
+LinBinner* LinBinner::clone() const 
+{
+  return new LinBinner(*this); 
+}
+
 LinBinner::~LinBinner() 
 {
   delete m_subbinner; 

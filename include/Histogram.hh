@@ -19,6 +19,8 @@ class Histogram
 {
 public: 
   Histogram(const std::vector<Axis>&); 
+  Histogram(const Histogram&); 
+  Histogram& operator=(const Histogram&); 
   ~Histogram(); 
   void fill(const std::map<std::string, double>, double weight = 1); 
   void fill(const std::vector<double>&, double weight = 1); 
@@ -26,8 +28,8 @@ public:
   std::vector<Axis> get_axes() const; 
   std::vector<double> get_values() const; 
 private: 
-  std::vector<Axis> m_dimsensions; 
   IBinner* m_binner; 
+  std::vector<Axis> m_dimsensions; 
   std::vector<double> m_values; 
 }; 
 

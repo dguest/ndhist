@@ -45,6 +45,8 @@ int main(int narg, char* argv[]) {
   dims.push_back(z); 
 
   Histogram hist(dims); 
+  Histogram copy_hist(hist); 
+  hist = copy_hist; 
   hist.fill(corrd);
   corrd["y"] -= 1; 
   hist.fill(corrd); 

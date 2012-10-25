@@ -9,6 +9,7 @@ class IBinner
 {
 public: 
   virtual ~IBinner() {}; 
+  virtual IBinner* clone() const = 0; 
   virtual int get_bin(const std::map<std::string, double>&) const = 0; 
   virtual int get_bin(std::vector<double>&) const = 0; 
   virtual void add_dimension(IBinner*) = 0; 
@@ -18,6 +19,9 @@ class LinBinner: public IBinner
 {
 public: 
   LinBinner(std::string name, int n_bins, double low, double high); 
+  LinBinner(const LinBinner&); 
+  LinBinner& operator=(const LinBinner&); 
+  LinBinner* clone() const; 
   ~LinBinner(); 
   int get_bin(const std::map<std::string, double>& locator) const; 
   int get_bin(std::vector<double>& locator) const; 
