@@ -21,6 +21,8 @@ public:
   Histogram(const std::vector<Axis>&); 
   ~Histogram(); 
   void fill(const std::map<std::string, double>, double weight = 1); 
+  void fill(const std::vector<double>&, double weight = 1); 
+  void fill(std::vector<double>&, double weight = 1); 
   std::vector<Axis> get_axes() const; 
   std::vector<double> get_values() const; 
 private: 

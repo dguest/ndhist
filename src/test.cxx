@@ -17,6 +17,11 @@ int main(int narg, char* argv[]) {
   corrd["z"] = 0.3; 
   std::cout << binner.get_bin(corrd) << std::endl; 
 
+  std::vector<double> v_corrd; 
+  v_corrd.push_back(1.3); 
+  v_corrd.push_back(4.5); 
+  v_corrd.push_back(0.3); 
+
   Axis x; 
   x.name = "x"; 
   x.n_bins = 10; 
@@ -43,6 +48,7 @@ int main(int narg, char* argv[]) {
   hist.fill(corrd);
   corrd["y"] -= 1; 
   hist.fill(corrd); 
+  hist.fill(v_corrd); 
   std::vector<double> vals = hist.get_values();
   int count = 0; 
   for (std::vector<double>::const_iterator itr = vals.begin(); 

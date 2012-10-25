@@ -24,6 +24,33 @@ int LinBinner::get_bin(const std::map<std::string, double>& locator) const
     throw std::runtime_error("could not find " + m_name + " in values given"); 
   }
   double value = bin_itr->second; 
+  int bin = get_bin(value); 
+  if (m_subbinner) { 
+    int sub_bin = m_subbinner->get_bin(locator); 
+    bin += sub_bin * (m_n_bins + 2); 
+  }
+
+  return bin; 
+}
+
+int LinBinner::get_bin(std::vector<double>& locator) const 
+{
+  if (locator.empty()) { 
+    throw std::runtime_error("could not find " + m_name + " in values given"); 
+  }
+  double value = locator.back();
+  locator.pop_back(); 
+  int bin = get_bin(value); 
+  if (m_subbinner) { 
+    int sub_bin = m_subbinner->get_bin(locator); 
+    bin += sub_bin * (m_n_bins + 2); 
+  }
+  return bin; 
+}
+
+
+int LinBinner::get_bin(double value) const 
+{
   int bin = 0; 
   if (value < m_low) { 
     bin = 0; 
@@ -36,12 +63,6 @@ int LinBinner::get_bin(const std::map<std::string, double>& locator) const
     double frac_range = (value - m_low) / range; 
     bin = int(frac_range * m_n_bins) + 1; 
   }
-
-  if (m_subbinner) { 
-    int sub_bin = m_subbinner->get_bin(locator); 
-    bin += sub_bin * (m_n_bins + 2); 
-  }
-
   return bin; 
 }
 
