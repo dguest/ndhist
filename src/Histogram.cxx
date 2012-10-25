@@ -2,10 +2,23 @@
 #include "Binners.hh"
 #include <stdexcept>
 #include <algorithm>
+#include <cassert> 
 
-Histogram::Histogram(const std::vector<Axis>& dims) : 
-  m_dimsensions(dims)
+Histogram::Histogram(int n_bins, double low, double high) 
+{ 
+  Axis a = {"x",n_bins,low,high};
+  init(std::vector<Axis>(1,a)); 
+  assert(get_axes().size() == 1); 
+}
+
+Histogram::Histogram(const std::vector<Axis>& dims)
 {
+  init(dims); 
+}
+void Histogram::init(const std::vector<Axis>& dims) 
+{ 
+  m_dimsensions = dims; 
+
   if (dims.size() == 0) {
     throw std::runtime_error("tried to initialize hist with no dimensions");
   }
@@ -58,6 +71,13 @@ void Histogram::fill(const std::vector<double>& input,
 void Histogram::fill(std::vector<double>& input, 
 		     double weight) { 
   int bin = m_binner->get_bin(input); 
+  m_values.at(bin) += weight; 
+}
+
+void Histogram::fill(double value, double weight) { 
+  assert(m_dimsensions.size() == 1); 
+  std::vector<double> v(1,value); 
+  int bin = m_binner->get_bin(v);
   m_values.at(bin) += weight; 
 }
 
