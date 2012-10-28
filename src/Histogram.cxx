@@ -82,7 +82,7 @@ void Histogram::fill(double value, double weight) {
   m_values.at(bin) += weight; 
 }
 
-void Histogram::save_to(H5::CommonFG& file, std::string name){
+void Histogram::save_to(H5::CommonFG& file, std::string name) const {
 
   using namespace H5; 
 
@@ -103,7 +103,7 @@ void Histogram::save_to(H5::CommonFG& file, std::string name){
   dataset.write(&m_values[0], PredType::NATIVE_DOUBLE); 
 
   for (unsigned dim = 0; dim < n_dims; dim++) { 
-    Axis& dim_info = m_dimsensions.at(dim); 
+    const Axis& dim_info = m_dimsensions.at(dim); 
     dim_atr(dataset, dim, dim_info); 
   }
 
