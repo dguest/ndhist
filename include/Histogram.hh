@@ -1,9 +1,15 @@
 #ifndef HISTOGRAM_H
 #define HISTOGRAM_H
 
+namespace H5 { 
+  class CommonFG; 
+  class DataSet; 
+} 
+
 #include <vector>
 #include <string> 
 #include <map>
+
 
 class IBinner; 
 
@@ -14,6 +20,7 @@ struct Axis
   double low; 
   double high; 
 };
+
 
 class Histogram
 {
@@ -27,10 +34,10 @@ public:
   void fill(const std::vector<double>&, double weight = 1); 
   void fill(std::vector<double>&, double weight = 1); 
   void fill(double value, double weight = 1); 
-  std::vector<Axis> get_axes() const; 
-  std::vector<double> get_values() const; 
+  void save_to(H5::CommonFG& file, std::string name); 
 private: 
   void init(const std::vector<Axis>&); 
+  void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim) const; 
   IBinner* m_binner; 
   std::vector<Axis> m_dimsensions; 
   std::vector<double> m_values; 

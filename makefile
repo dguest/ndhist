@@ -50,7 +50,7 @@ PY_LDFLAGS += -shared
 
 # ---- define objects
 # - not-python 
-GEN_OBJ     := Histogram.o Binners.o HdfFromHist.o
+GEN_OBJ     := Histogram.o Binners.o 
 
 # - python interface
 PY_OBJ       := 

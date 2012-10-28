@@ -1,7 +1,5 @@
 #include "Histogram.hh"
 #include "Binners.hh"
-#include "HdfFromHist.hh"
-
 #include "H5Cpp.h"
 #include <vector> 
 #include <iostream>
@@ -51,21 +49,9 @@ int main(int narg, char* argv[]) {
   corrd["y"] -= 1; 
   hist.fill(corrd); 
   hist.fill(v_corrd); 
-  std::vector<double> vals = hist.get_values();
-  int count = 0; 
-  for (std::vector<double>::const_iterator itr = vals.begin(); 
-       itr != vals.end(); itr++) {
-    std::cout << *itr << " "; 
-    count++; 
-    if (count == 12) { 
-      std::cout << std::endl;
-      count = 0; 
-    }
-  }
-  std::cout << std::endl; 
 
   H5::H5File file("test.h5", H5F_ACC_TRUNC); 
-  histToFile(hist, file, "testhist"); 
+  hist.save_to(file, "testhist"); 
 		  
   return 0; 
 }

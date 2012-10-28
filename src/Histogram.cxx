@@ -1,4 +1,5 @@
 #include "Histogram.hh"
+#include "H5Cpp.h"
 #include "Binners.hh"
 #include <stdexcept>
 #include <algorithm>
@@ -8,7 +9,7 @@ Histogram::Histogram(int n_bins, double low, double high)
 { 
   Axis a = {"x",n_bins,low,high};
   init(std::vector<Axis>(1,a)); 
-  assert(get_axes().size() == 1); 
+  assert(m_dimsensions.size() == 1); 
 }
 
 Histogram::Histogram(const std::vector<Axis>& dims)
@@ -81,10 +82,52 @@ void Histogram::fill(double value, double weight) {
   m_values.at(bin) += weight; 
 }
 
-std::vector<Axis> Histogram::get_axes() const { 
-  return m_dimsensions; 
-}
-std::vector<double> Histogram::get_values() const { 
-  return m_values; 
+void Histogram::save_to(H5::CommonFG& file, std::string name){
+
+  using namespace H5; 
+
+  const hsize_t n_dims = m_dimsensions.size(); 
+  hsize_t ds_dims[n_dims]; 
+  hsize_t total_entries = 1;
+  for (unsigned dim = 0; dim < n_dims; dim++) { 
+    // 2 extra for overflow bins
+    hsize_t bins = m_dimsensions.at(dim).n_bins + 2; 	
+    ds_dims[dim] = bins; 
+    total_entries *= bins; 
+  }
+
+  H5::DataSpace data_space(n_dims, ds_dims); 
+  H5::DataSet dataset = file.createDataSet(name, PredType::NATIVE_DOUBLE, 
+					   data_space); 
+  assert(m_values.size() == total_entries); 
+  dataset.write(&m_values[0], PredType::NATIVE_DOUBLE); 
+
+  for (unsigned dim = 0; dim < n_dims; dim++) { 
+    Axis& dim_info = m_dimsensions.at(dim); 
+    dim_atr(dataset, dim, dim_info); 
+  }
+
 }
 
+
+void Histogram::dim_atr(H5::DataSet& target, unsigned number, 
+			const Axis& dim) const
+{
+  using namespace H5;
+  DataSpace space(H5S_SCALAR);
+  IntType int_type(PredType::NATIVE_INT);
+  IntType uint_type(PredType::NATIVE_UINT); 
+  std::string axis_name = dim.name + "_axis"; 
+  Attribute axis = target.createAttribute(axis_name, uint_type, space);
+  axis.write(uint_type, &number);
+
+  std::string n_bin_name = dim.name + "_bins"; 
+  Attribute n_bin = target.createAttribute(n_bin_name, int_type, space); 
+  n_bin.write(int_type, &dim.n_bins); 
+  FloatType f_type(PredType::NATIVE_DOUBLE); 
+  Attribute max = target.createAttribute(dim.name + "_max", f_type, space); 
+  max.write(f_type, &dim.high); 
+  Attribute min = target.createAttribute(dim.name + "_min", f_type, space); 
+  min.write(f_type, &dim.low); 
+  
+}
