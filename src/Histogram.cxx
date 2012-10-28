@@ -82,7 +82,7 @@ void Histogram::fill(double value, double weight) {
   m_values.at(bin) += weight; 
 }
 
-void Histogram::save_to(H5::CommonFG& file, std::string name) const {
+void Histogram::write_to(H5::CommonFG& file, std::string name) const {
 
   using namespace H5; 
 

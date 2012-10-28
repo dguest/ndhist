@@ -34,7 +34,7 @@ public:
   void fill(const std::vector<double>&, double weight = 1); 
   void fill(std::vector<double>&, double weight = 1); 
   void fill(double value, double weight = 1); 
-  void save_to(H5::CommonFG& file, std::string name) const; 
+  void write_to(H5::CommonFG& file, std::string name) const; 
 private: 
   void init(const std::vector<Axis>&); 
   void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim) const; 

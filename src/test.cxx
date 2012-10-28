@@ -51,7 +51,7 @@ int main(int narg, char* argv[]) {
   hist.fill(v_corrd); 
 
   H5::H5File file("test.h5", H5F_ACC_TRUNC); 
-  hist.save_to(file, "testhist"); 
+  hist.write_to(file, "testhist"); 
 		  
   return 0; 
 }
