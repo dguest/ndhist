@@ -38,9 +38,11 @@ public:
 private: 
   void init(const std::vector<Axis>&); 
   void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim) const; 
+  int get_chunk_size(int) const; 
   IBinner* m_binner; 
   std::vector<Axis> m_dimsensions; 
   std::vector<double> m_values; 
+  std::vector<int> m_chunking; 
 }; 
 
 #endif //HISTOGRAM_H

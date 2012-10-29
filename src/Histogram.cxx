@@ -88,17 +88,21 @@ void Histogram::write_to(H5::CommonFG& file, std::string name) const {
 
   const hsize_t n_dims = m_dimsensions.size(); 
   hsize_t ds_dims[n_dims]; 
+  hsize_t ds_chunks[n_dims]; 
   hsize_t total_entries = 1;
   for (unsigned dim = 0; dim < n_dims; dim++) { 
     // 2 extra for overflow bins
     hsize_t bins = m_dimsensions.at(dim).n_bins + 2; 	
     ds_dims[dim] = bins; 
+    ds_chunks[dim] = get_chunk_size(bins); // for now just returns value
     total_entries *= bins; 
   }
-
+  H5::DSetCreatPropList params; 
+  params.setChunk(n_dims, ds_chunks);
+  params.setDeflate(9); 
   H5::DataSpace data_space(n_dims, ds_dims); 
   H5::DataSet dataset = file.createDataSet(name, PredType::NATIVE_DOUBLE, 
-					   data_space); 
+					   data_space, params); 
   assert(m_values.size() == total_entries); 
   dataset.write(&m_values[0], PredType::NATIVE_DOUBLE); 
 
@@ -130,4 +134,8 @@ void Histogram::dim_atr(H5::DataSet& target, unsigned number,
   Attribute min = target.createAttribute(dim.name + "_min", f_type, space); 
   min.write(f_type, &dim.low); 
   
+}
+
+int Histogram::get_chunk_size(int input) const { 
+  return input; 
 }
