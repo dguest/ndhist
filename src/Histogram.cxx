@@ -24,6 +24,7 @@ void Histogram::init(const std::vector<Axis>& dims)
     throw std::runtime_error("tried to initialize hist with no dimensions");
   }
   typedef std::vector<Axis> Axes;
+  assert(dims.size() > 0); 
   Axes::const_reverse_iterator itr = dims.rbegin(); 
   int n_values = itr->n_bins + 2; 
   m_binner = new LinBinner(itr->name, itr->n_bins, itr->low, itr->high);
@@ -33,14 +34,17 @@ void Histogram::init(const std::vector<Axis>& dims)
 					 itr->low, itr->high)); 
     n_values *= (itr->n_bins + 2); 
   }
+  assert(m_binner); 
   m_values = std::vector<double>(n_values, 0); 
 }
 
 Histogram::Histogram(const Histogram& old): 
-  m_binner(old.m_binner->clone()), 
+  m_binner(0), 
   m_dimsensions(old.m_dimsensions), 
   m_values(old.m_values)
 { 
+  assert(old.m_binner); 
+  m_binner = old.m_binner->clone(); 
 }
 
 Histogram& Histogram::operator=(const Histogram& old)
