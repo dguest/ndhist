@@ -5,9 +5,9 @@
 #include <algorithm>
 #include <cassert> 
 
-Histogram::Histogram(int n_bins, double low, double high) 
+Histogram::Histogram(int n_bins, double low, double high, std::string units) 
 { 
-  Axis a = {"x",n_bins,low,high};
+  Axis a = {"x",n_bins,low,high,units};
   init(std::vector<Axis>(1,a)); 
   assert(m_dimsensions.size() == 1); 
 }
@@ -125,6 +125,8 @@ void Histogram::dim_atr(H5::DataSet& target, unsigned number,
   DataSpace space(H5S_SCALAR);
   IntType int_type(PredType::NATIVE_INT);
   IntType uint_type(PredType::NATIVE_UINT); 
+  StrType str_type(PredType::C_S1, H5T_VARIABLE);
+
   std::string axis_name = dim.name + "_axis"; 
   Attribute axis = target.createAttribute(axis_name, uint_type, space);
   axis.write(uint_type, &number);
@@ -137,7 +139,10 @@ void Histogram::dim_atr(H5::DataSet& target, unsigned number,
   max.write(f_type, &dim.high); 
   Attribute min = target.createAttribute(dim.name + "_min", f_type, space); 
   min.write(f_type, &dim.low); 
-  
+
+  std::string unit_name = dim.name + "_units"; 
+  Attribute units = target.createAttribute(unit_name, str_type, space); 
+  units.write(str_type, &dim.units); 
 }
 
 int Histogram::get_chunk_size(int input) const { 

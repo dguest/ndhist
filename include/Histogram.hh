@@ -19,13 +19,14 @@ struct Axis
   int n_bins; 
   double low; 
   double high; 
+  std::string units; 
 };
 
 
 class Histogram
 {
 public: 
-  Histogram(int n_bins, double low, double high); 
+  Histogram(int n_bins, double low, double high, std::string units = ""); 
   Histogram(const std::vector<Axis>&); 
   Histogram(const Histogram&); 
   Histogram& operator=(const Histogram&); 
