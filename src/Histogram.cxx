@@ -86,8 +86,9 @@ void Histogram::fill(double value, double weight) {
   m_values.at(bin) += weight; 
 }
 
-void Histogram::write_to(H5::CommonFG& file, std::string name) const {
-
+void Histogram::write_to(H5::CommonFG& file, std::string name, int deflate) 
+  const 
+{
   using namespace H5; 
 
   const hsize_t n_dims = m_dimsensions.size(); 
@@ -103,7 +104,7 @@ void Histogram::write_to(H5::CommonFG& file, std::string name) const {
   }
   H5::DSetCreatPropList params; 
   params.setChunk(n_dims, ds_chunks);
-  params.setDeflate(9); 
+  params.setDeflate(deflate); 
   H5::DataSpace data_space(n_dims, ds_dims); 
   H5::DataSet dataset = file.createDataSet(name, PredType::NATIVE_DOUBLE, 
 					   data_space, params); 
