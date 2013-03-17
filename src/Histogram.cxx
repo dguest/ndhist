@@ -2,6 +2,7 @@
 #include "H5Cpp.h"
 #include "Binners.hh"
 #include <stdexcept>
+#include <set>
 #include <algorithm>
 #include <cassert> 
 
@@ -19,11 +20,7 @@ Histogram::Histogram(const std::vector<Axis>& dims)
 void Histogram::init(const std::vector<Axis>& dims) 
 { 
   m_dimsensions = dims; 
-
-  if (dims.size() == 0) {
-    throw std::runtime_error("tried to initialize hist with no dimensions");
-  }
-  typedef std::vector<Axis> Axes;
+  check_dimensions(dims); 
   assert(dims.size() > 0); 
   Axes::const_reverse_iterator itr = dims.rbegin(); 
   int n_values = itr->n_bins + 2; 
@@ -148,4 +145,26 @@ void Histogram::dim_atr(H5::DataSet& target, unsigned number,
 
 int Histogram::get_chunk_size(int input) const { 
   return input; 
+}
+
+void Histogram::check_dimensions(const std::vector<Axis>& axes) { 
+  if (axes.size() == 0) {
+    throw std::logic_error("Histogram: tried to initialize with no"
+			   " dimensions");
+  }
+  std::set<std::string> names; 
+  for (Axes::const_iterator itr = axes.begin(); itr != axes.end(); itr++) { 
+    if (itr->name.size() == 0) { 
+      throw std::logic_error("Histogram: unnamed axis"); 
+    }
+    if (names.count(itr->name)) { 
+      throw std::logic_error("Histogram: axis name " + itr->name + 
+			     " was used twice"); 
+    }
+    if (itr->low > itr->high) { 
+      throw std::logic_error("Histogram: axis " + itr->name + " has high "
+			     "bound below low bound"); 
+    }
+    
+  }
 }

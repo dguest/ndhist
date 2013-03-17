@@ -37,9 +37,11 @@ public:
   void fill(double value, double weight = 1); 
   void write_to(H5::CommonFG& file, std::string name, int deflate = 7) const; 
 private: 
+  typedef std::vector<Axis> Axes;
   void init(const std::vector<Axis>&); 
   void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim) const; 
   int get_chunk_size(int) const; 
+  void check_dimensions(const std::vector<Axis>&); 
   IBinner* m_binner; 
   std::vector<Axis> m_dimsensions; 
   std::vector<double> m_values; 
