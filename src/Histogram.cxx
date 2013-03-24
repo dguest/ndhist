@@ -66,12 +66,6 @@ void Histogram::fill(const std::map<std::string, double> input,
 
 void Histogram::fill(const std::vector<double>& input, 
 		     double weight) { 
-  std::vector<double> cp(input); 
-  fill(cp); 
-}
-
-void Histogram::fill(std::vector<double>& input, 
-		     double weight) { 
   int bin = m_binner->get_bin(input); 
   m_values.at(bin) += weight; 
 }

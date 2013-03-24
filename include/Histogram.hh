@@ -33,7 +33,6 @@ public:
   ~Histogram(); 
   void fill(const std::map<std::string, double>, double weight = 1); 
   void fill(const std::vector<double>&, double weight = 1); 
-  void fill(std::vector<double>&, double weight = 1); 
   void fill(double value, double weight = 1); 
   void write_to(H5::CommonFG& file, std::string name, int deflate = 7) const; 
 private: 

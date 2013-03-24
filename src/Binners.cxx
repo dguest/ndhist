@@ -64,16 +64,17 @@ int LinBinner::get_bin(const std::map<std::string, double>& locator) const
   return bin; 
 }
 
-int LinBinner::get_bin(std::vector<double>& locator) const 
+int LinBinner::get_bin(const std::vector<double>& locator, size_t offset) 
+  const 
 {
-  if (locator.empty()) { 
+  size_t index = locator.size() - offset - 1; 
+  if (index < 0) { 
     throw std::runtime_error("could not find " + m_name + " in values given"); 
   }
-  double value = locator.back();
-  locator.pop_back(); 
+  double value = locator.at(index); 
   int bin = get_bin(value); 
   if (m_subbinner) { 
-    int sub_bin = m_subbinner->get_bin(locator); 
+    int sub_bin = m_subbinner->get_bin(locator, offset + 1); 
     bin += sub_bin * (m_n_bins + 2); 
   }
   return bin; 
