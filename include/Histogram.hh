@@ -29,7 +29,7 @@ public:
   Histogram(int n_bins, double low, double high, std::string units = ""); 
   Histogram(const std::vector<Axis>&); 
   Histogram(const Histogram&); 
-  Histogram& operator=(const Histogram&); 
+  Histogram& operator=(Histogram); 
   ~Histogram(); 
   void fill(const std::map<std::string, double>, double weight = 1); 
   void fill(const std::vector<double>&, double weight = 1); 

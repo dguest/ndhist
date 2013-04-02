@@ -1,5 +1,6 @@
 #include "Binners.hh"
 #include <stdexcept>
+#include <algorithm>
 
 
 LinBinner::LinBinner(std::string name, int n_bins, double low, double high): 
@@ -23,17 +24,14 @@ LinBinner::LinBinner(const LinBinner& o):
   }
 }
 
-LinBinner& LinBinner::operator=(const LinBinner& o)
+LinBinner& LinBinner::operator=(LinBinner o)
 { 
-  if (o.m_subbinner) { 
-    delete m_subbinner; 
-    m_subbinner = o.m_subbinner->clone(); 
-  }
-
-  m_name = o.m_name;  
-  m_n_bins = o.m_n_bins; 
-  m_low = o.m_low; 
-  m_high = o.m_high;  
+  using std::swap; 
+  swap(m_subbinner, o.m_subbinner); 
+  swap(m_name, o.m_name); 
+  swap(m_n_bins, o.m_n_bins); 
+  swap(m_low, o.m_low); 
+  swap(m_high, o.m_high); 
   return *this; 
 }
 

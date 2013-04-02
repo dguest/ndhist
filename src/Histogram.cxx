@@ -44,12 +44,12 @@ Histogram::Histogram(const Histogram& old):
   m_binner = old.m_binner->clone(); 
 }
 
-Histogram& Histogram::operator=(const Histogram& old)
+Histogram& Histogram::operator=(Histogram old)
 { 
-  delete m_binner; 
-  m_binner = old.m_binner->clone(); 
-  m_dimsensions = old.m_dimsensions; 
-  m_values = old.m_values; 
+  using std::swap; 
+  swap(m_binner, old.m_binner); 
+  swap(m_dimsensions, old.m_dimsensions); 
+  swap(m_values, old.m_values); 
   return *this; 
 }
 
