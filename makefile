@@ -14,39 +14,21 @@ vpath %.o    $(BIN)
 vpath %.cxx  $(SRC) 
 vpath %.hh   $(INC) 
 
-# --- set the version of python-config
-PY_CONFIG := python2.7-config
-
-# --- load in root config
-ROOTCFLAGS    := $(shell root-config --cflags)
-ROOTLIBS      := $(shell root-config --libs)
-ROOTLDFLAGS   := $(shell root-config --ldflags)
-
-PY_FLAGS :=   $(shell $(PY_CONFIG) --includes)
-PY_LIB   := -L$(shell $(PY_CONFIG) --prefix)/lib
-PY_LIB   +=   $(shell $(PY_CONFIG) --libs)
-
-# --- set COMMON_LIBS if you want to include another library 
-COMMON_LIBS  :=
-
 # --- set compiler and flags (roll c options and include paths together)
 CXX          := g++
 CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -g
 LDFLAGS      := -Wl,-no-undefined 
-LIBS         := -L$(COMMON_LIBS) -Wl,-rpath,$(COMMON_LIBS) 
+
+# --- external dirs 
+-include local.mk		# workaround for non-root install
+ifdef HDF_PATH
+COMMON_LIBS   := $(HDF_PATH)/lib
+LIBS          := -L$(COMMON_LIBS) -Wl,-rpath,$(COMMON_LIBS) 
+CXXFLAGS      += -I$(HDF_PATH)/include
+endif 
 
 COPT += -D HDF5
 LIBS += -lhdf5_cpp -lhdf5 
-
-# rootstuff 
-CXXFLAGS     += $(ROOTCFLAGS)
-LDFLAGS      += $(ROOTLDFLAGS)
-LIBS         += $(ROOTLIBS)
-
-# pystuff (roll the linking options and libraries together)
-PY_LDFLAGS := $(LDFLAGS)
-PY_LDFLAGS += $(PY_LIB)
-PY_LDFLAGS += -shared
 
 # ---- define objects
 # - not-python 
@@ -72,18 +54,7 @@ $(LIB)/libndhist.so: $(GEN_OBJ:%=$(BIN)/%)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS) -shared
 
-$(PYTHON)/_ndhist.so: $(GEN_OBJ:%=$(BIN)/%) $(PY_OBJ:%=$(BIN)/%)
-	@mkdir -p $(PYTHON)
-	@echo "linking $^ --> $@"
-	@$(CXX) -o $@ $^ $(LIBS) $(PY_LDFLAGS)
-
 # --------------------------------------------------
-
-# python object compile
-$(BIN)/_%.o: _%.cxx 
-	@echo compiling python object $@
-	@mkdir -p $(BIN)
-	@$(CXX) -c $(CXXFLAGS) $(PY_FLAGS) $< -o $@ 
 
 # compile rule
 $(BIN)/%.o: %.cxx

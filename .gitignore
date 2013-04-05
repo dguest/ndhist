@@ -6,3 +6,4 @@
 /binner
 /test
 *.h5
+local.mk
