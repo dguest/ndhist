@@ -27,15 +27,11 @@ LIBS          := -L$(COMMON_LIBS) -Wl,-rpath,$(COMMON_LIBS)
 CXXFLAGS      += -I$(HDF_PATH)/include
 endif 
 
-COPT += -D HDF5
 LIBS += -lhdf5_cpp -lhdf5 
 
 # ---- define objects
 # - not-python 
 GEN_OBJ     := Histogram.o Binners.o 
-
-# - python interface
-PY_OBJ       := 
 
 # - command line interface
 EXE_OBJ      := test.o
