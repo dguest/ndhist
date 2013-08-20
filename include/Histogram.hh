@@ -10,7 +10,6 @@ namespace H5 {
 #include <string> 
 #include <map>
 
-
 class IBinner; 
 
 struct Axis
@@ -31,13 +30,14 @@ public:
   Histogram(const Histogram&); 
   Histogram& operator=(Histogram); 
   ~Histogram(); 
-  void fill(const std::map<std::string, double>, double weight = 1); 
+  void fill(const std::map<std::string, double>&, double weight = 1); 
   void fill(const std::vector<double>&, double weight = 1); 
   void fill(double value, double weight = 1); 
   void write_to(H5::CommonFG& file, std::string name, int deflate = 7) const; 
 private: 
   typedef std::vector<Axis> Axes;
   void init(const std::vector<Axis>&); 
+  template<typename T> void safe_fill(T, double); 
   void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim) const; 
   int get_chunk_size(int) const; 
   void check_dimensions(const std::vector<Axis>&); 
@@ -45,6 +45,7 @@ private:
   std::vector<Axis> m_dimsensions; 
   std::vector<double> m_values; 
   std::vector<int> m_chunking; 
+  int m_n_nan; 
 }; 
 
 #endif //HISTOGRAM_H

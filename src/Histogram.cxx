@@ -19,6 +19,7 @@ Histogram::Histogram(const std::vector<Axis>& dims)
 }
 void Histogram::init(const std::vector<Axis>& dims) 
 { 
+  m_n_nan = 0; 
   m_dimsensions = dims; 
   check_dimensions(dims); 
   assert(dims.size() > 0); 
@@ -38,7 +39,8 @@ void Histogram::init(const std::vector<Axis>& dims)
 Histogram::Histogram(const Histogram& old): 
   m_binner(0), 
   m_dimsensions(old.m_dimsensions), 
-  m_values(old.m_values)
+  m_values(old.m_values), 
+  m_n_nan(old.m_n_nan)
 { 
   assert(old.m_binner); 
   m_binner = old.m_binner->clone(); 
@@ -50,6 +52,7 @@ Histogram& Histogram::operator=(Histogram old)
   swap(m_binner, old.m_binner); 
   swap(m_dimsensions, old.m_dimsensions); 
   swap(m_values, old.m_values); 
+  swap(m_n_nan, old.m_n_nan); 
   return *this; 
 }
 
@@ -58,23 +61,20 @@ Histogram::~Histogram()
   delete m_binner; 
 }
 
-void Histogram::fill(const std::map<std::string, double> input, 
+void Histogram::fill(const std::map<std::string, double>& input, 
 		     double weight) { 
-  int bin = m_binner->get_bin(input); 
-  m_values.at(bin) += weight; 
+  safe_fill(input, weight); 
 }
 
 void Histogram::fill(const std::vector<double>& input, 
 		     double weight) { 
-  int bin = m_binner->get_bin(input); 
-  m_values.at(bin) += weight; 
+  safe_fill(input, weight); 
 }
 
 void Histogram::fill(double value, double weight) { 
   assert(m_dimsensions.size() == 1); 
   std::vector<double> v(1,value); 
-  int bin = m_binner->get_bin(v);
-  m_values.at(bin) += weight; 
+  safe_fill(v, weight); 
 }
 
 void Histogram::write_to(H5::CommonFG& file, std::string name, int deflate) 
@@ -105,8 +105,23 @@ void Histogram::write_to(H5::CommonFG& file, std::string name, int deflate)
     const Axis& dim_info = m_dimsensions.at(dim); 
     dim_atr(dataset, dim, dim_info); 
   }
+  dataset.createAttribute
+    ("nan", PredType::NATIVE_INT, H5S_SCALAR).write
+    (PredType::NATIVE_INT, &m_n_nan); 
+  
 }
 
+// ==================== private ==========================
+template<typename T> 
+void Histogram::safe_fill(T input, double weight) {
+  try { 
+    int bin = m_binner->get_bin(input); 
+    m_values.at(bin) += weight; 
+  }
+  catch (std::range_error& r) { 
+    m_n_nan++; 
+  }
+}
 
 void Histogram::dim_atr(H5::DataSet& target, unsigned number, 
 			const Axis& dim) const
@@ -160,3 +175,6 @@ void Histogram::check_dimensions(const std::vector<Axis>& axes) {
     
   }
 }
+
+
+
