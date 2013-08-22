@@ -6,19 +6,21 @@
 #include <algorithm>
 #include <cassert> 
 
-Histogram::Histogram(int n_bins, double low, double high, std::string units) 
+Histogram::Histogram(int n_bins, double low, double high, std::string units, 
+		     unsigned flags) 
 { 
   Axis a = {"x",n_bins,low,high,units};
-  init(std::vector<Axis>(1,a)); 
+  init(std::vector<Axis>(1,a), flags); 
   assert(m_dimsensions.size() == 1); 
 }
 
-Histogram::Histogram(const std::vector<Axis>& dims)
+Histogram::Histogram(const std::vector<Axis>& dims, unsigned flags)
 {
-  init(dims); 
+  init(dims, flags); 
 }
-void Histogram::init(const std::vector<Axis>& dims) 
+void Histogram::init(const std::vector<Axis>& dims, unsigned flags) 
 { 
+  m_eat_nan = flags & hist::eat_nan; 
   m_n_nan = 0; 
   m_dimsensions = dims; 
   check_dimensions(dims); 
@@ -40,7 +42,8 @@ Histogram::Histogram(const Histogram& old):
   m_binner(0), 
   m_dimsensions(old.m_dimsensions), 
   m_values(old.m_values), 
-  m_n_nan(old.m_n_nan)
+  m_n_nan(old.m_n_nan), 
+  m_eat_nan(old.m_eat_nan)
 { 
   assert(old.m_binner); 
   m_binner = old.m_binner->clone(); 
@@ -53,6 +56,7 @@ Histogram& Histogram::operator=(Histogram old)
   swap(m_dimsensions, old.m_dimsensions); 
   swap(m_values, old.m_values); 
   swap(m_n_nan, old.m_n_nan); 
+  swap(m_eat_nan, old.m_eat_nan); 
   return *this; 
 }
 
@@ -119,7 +123,12 @@ void Histogram::safe_fill(T input, double weight) {
     m_values.at(bin) += weight; 
   }
   catch (std::range_error& r) { 
-    m_n_nan++; 
+    if (m_eat_nan) { 
+      m_n_nan++; 
+    }
+    else { 
+      throw; 
+    }
   }
 }
 
