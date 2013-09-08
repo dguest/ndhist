@@ -21,6 +21,7 @@ public:
   LinBinner(std::string name, int n_bins, double low, double high); 
   LinBinner(const LinBinner&); 
   LinBinner& operator=(LinBinner); 
+  friend void swap(LinBinner&, LinBinner&); 
   LinBinner* clone() const; 
   ~LinBinner(); 
   int get_bin(const std::map<std::string, double>& locator) const; 

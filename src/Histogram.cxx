@@ -42,6 +42,7 @@ Histogram::Histogram(const Histogram& old):
   m_binner(0), 
   m_dimsensions(old.m_dimsensions), 
   m_values(old.m_values), 
+  m_chunking(old.m_chunking), 
   m_n_nan(old.m_n_nan), 
   m_eat_nan(old.m_eat_nan)
 { 
@@ -52,17 +53,24 @@ Histogram::Histogram(const Histogram& old):
 Histogram& Histogram::operator=(Histogram old)
 { 
   using std::swap; 
-  swap(m_binner, old.m_binner); 
-  swap(m_dimsensions, old.m_dimsensions); 
-  swap(m_values, old.m_values); 
-  swap(m_n_nan, old.m_n_nan); 
-  swap(m_eat_nan, old.m_eat_nan); 
+  swap(*this, old);
   return *this; 
 }
 
 Histogram::~Histogram() 
 {
   delete m_binner; 
+}
+
+void swap(Histogram& f, Histogram& s) 
+{
+  using std::swap; 
+  swap(f.m_binner,      s.m_binner); 
+  swap(f.m_dimsensions, s.m_dimsensions); 
+  swap(f.m_values,      s.m_values); 
+  swap(f.m_chunking,    s.m_chunking); 
+  swap(f.m_n_nan,       s.m_n_nan); 
+  swap(f.m_eat_nan,     s.m_eat_nan); 
 }
 
 void Histogram::fill(const std::map<std::string, double>& input, 

@@ -27,12 +27,18 @@ LinBinner::LinBinner(const LinBinner& o):
 LinBinner& LinBinner::operator=(LinBinner o)
 { 
   using std::swap; 
-  swap(m_subbinner, o.m_subbinner); 
-  swap(m_name, o.m_name); 
-  swap(m_n_bins, o.m_n_bins); 
-  swap(m_low, o.m_low); 
-  swap(m_high, o.m_high); 
+  swap(*this, o); 
   return *this; 
+}
+
+void swap(LinBinner& f, LinBinner& s) 
+{
+  using std::swap; 
+  swap(f.m_name,      s.m_name); 
+  swap(f.m_n_bins,    s.m_n_bins); 
+  swap(f.m_low,       s.m_low); 
+  swap(f.m_high,      s.m_high); 
+  swap(f.m_subbinner, s.m_subbinner); 
 }
 
 LinBinner* LinBinner::clone() const 

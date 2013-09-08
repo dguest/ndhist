@@ -37,6 +37,7 @@ public:
   Histogram(const Histogram&); 
   Histogram& operator=(Histogram); 
   ~Histogram(); 
+  friend void swap(Histogram&, Histogram&); 
   void fill(const std::map<std::string, double>&, double weight = 1); 
   void fill(const std::vector<double>&, double weight = 1); 
   void fill(double value, double weight = 1); 
