@@ -15,6 +15,7 @@ namespace H5 {
 #include <vector>
 #include <string> 
 #include <map>
+#include <initializer_list>
 
 class IBinner; 
 
@@ -33,6 +34,7 @@ class Histogram
 public: 
   Histogram(int n_bins, double low, double high, std::string units = "", 
 	    unsigned flags = 0); 
+  Histogram(const std::initializer_list<Axis>&, unsigned flags = 0); 
   Histogram(const std::vector<Axis>&, unsigned flags = 0); 
   Histogram(const Histogram&); 
   Histogram& operator=(Histogram); 
@@ -40,6 +42,7 @@ public:
   friend void swap(Histogram&, Histogram&); 
   void fill(const std::map<std::string, double>&, double weight = 1); 
   void fill(const std::vector<double>&, double weight = 1); 
+  void fill(const std::initializer_list<double>&, double weight = 1); 
   void fill(double value, double weight = 1); 
   void write_to(H5::CommonFG& file, std::string name, int deflate = 7) const; 
 private: 

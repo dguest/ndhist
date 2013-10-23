@@ -14,6 +14,11 @@ Histogram::Histogram(int n_bins, double low, double high, std::string units,
   assert(m_dimsensions.size() == 1); 
 }
 
+Histogram::Histogram(const std::initializer_list<Axis>& dims, unsigned flags): 
+  Histogram(std::vector<Axis>(dims), flags) 
+{
+}
+
 Histogram::Histogram(const std::vector<Axis>& dims, unsigned flags)
 {
   init(dims, flags); 
@@ -81,6 +86,10 @@ void Histogram::fill(const std::map<std::string, double>& input,
 void Histogram::fill(const std::vector<double>& input, 
 		     double weight) { 
   safe_fill(input, weight); 
+}
+void Histogram::fill(const std::initializer_list<double>& input, 
+		     double weight) { 
+  safe_fill(std::vector<double>(input), weight); 
 }
 
 void Histogram::fill(double value, double weight) { 
