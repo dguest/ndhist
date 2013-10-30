@@ -5,6 +5,7 @@ namespace hist {
   // Histogram::fill(...) will throw a std::range_error if it gets nan
   // set this flag to simply count the number of nan. 
   const unsigned eat_nan = 1u << 0; 
+  const unsigned wt2     = 1u << 1; 
 }
 
 namespace H5 { 
@@ -44,10 +45,14 @@ public:
   void fill(const std::vector<double>&, double weight = 1); 
   void fill(const std::initializer_list<double>&, double weight = 1); 
   void fill(double value, double weight = 1); 
-  void write_to(H5::CommonFG& file, std::string name, int deflate = 7) const; 
+  void set_wt_ext(const std::string& ext); 
+  void write_to(H5::CommonFG& file, 
+		const std::string& name, int deflate = 7) const; 
 private: 
   typedef std::vector<Axis> Axes;
-  void init(const std::vector<Axis>&, unsigned); 
+  void write_internal(
+    H5::CommonFG& file, const std::string& name, int deflate, 
+    const std::vector<double>& values) const; 
   template<typename T> void safe_fill(T, double); 
   void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim) const; 
   int get_chunk_size(int) const; 
@@ -58,6 +63,8 @@ private:
   std::vector<int> m_chunking; 
   int m_n_nan; 
   bool m_eat_nan; 
+  std::vector<double>* m_wt2; 
+  std::string m_wt2_ext; 
 }; 
 
 #endif //HISTOGRAM_H

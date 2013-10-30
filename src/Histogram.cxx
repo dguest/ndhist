@@ -7,24 +7,22 @@
 #include <cassert> 
 
 Histogram::Histogram(int n_bins, double low, double high, std::string units, 
-		     unsigned flags) 
+		     unsigned flags): 
+  Histogram({{"x",n_bins,low,high,units}}, flags)
 { 
-  Axis a = {"x",n_bins,low,high,units};
-  init(std::vector<Axis>(1,a), flags); 
   assert(m_dimsensions.size() == 1); 
 }
 
-Histogram::Histogram(const std::initializer_list<Axis>& dims, unsigned flags): 
+Histogram::Histogram(const std::initializer_list<Axis>& dims, 
+		     unsigned flags): 
   Histogram(std::vector<Axis>(dims), flags) 
 {
 }
 
-Histogram::Histogram(const std::vector<Axis>& dims, unsigned flags)
-{
-  init(dims, flags); 
-}
-void Histogram::init(const std::vector<Axis>& dims, unsigned flags) 
+Histogram::Histogram(const std::vector<Axis>& dims, unsigned flags) 
 { 
+  m_wt2 = 0; 
+  m_wt2_ext = "Wt2"; 
   m_eat_nan = flags & hist::eat_nan; 
   m_n_nan = 0; 
   m_dimsensions = dims; 
@@ -41,6 +39,9 @@ void Histogram::init(const std::vector<Axis>& dims, unsigned flags)
   }
   assert(m_binner); 
   m_values = std::vector<double>(n_values, 0); 
+  if (flags & hist::wt2) { 
+    m_wt2 = new std::vector<double>(n_values, 0); 
+  }
 }
 
 Histogram::Histogram(const Histogram& old): 
@@ -49,10 +50,14 @@ Histogram::Histogram(const Histogram& old):
   m_values(old.m_values), 
   m_chunking(old.m_chunking), 
   m_n_nan(old.m_n_nan), 
-  m_eat_nan(old.m_eat_nan)
+  m_eat_nan(old.m_eat_nan), 
+  m_wt2(0)
 { 
   assert(old.m_binner); 
   m_binner = old.m_binner->clone(); 
+  if (old.m_wt2) { 
+    *m_wt2 = *old.m_wt2; 
+  }
 }
 
 Histogram& Histogram::operator=(Histogram old)
@@ -65,6 +70,7 @@ Histogram& Histogram::operator=(Histogram old)
 Histogram::~Histogram() 
 {
   delete m_binner; 
+  delete m_wt2; 
 }
 
 void swap(Histogram& f, Histogram& s) 
@@ -76,6 +82,8 @@ void swap(Histogram& f, Histogram& s)
   swap(f.m_chunking,    s.m_chunking); 
   swap(f.m_n_nan,       s.m_n_nan); 
   swap(f.m_eat_nan,     s.m_eat_nan); 
+  swap(f.m_wt2,         s.m_wt2); 
+  swap(f.m_wt2_ext,     s.m_wt2_ext); 
 }
 
 void Histogram::fill(const std::map<std::string, double>& input, 
@@ -98,8 +106,29 @@ void Histogram::fill(double value, double weight) {
   safe_fill(v, weight); 
 }
 
-void Histogram::write_to(H5::CommonFG& file, std::string name, int deflate) 
+void Histogram::set_wt_ext(const std::string& ext) { 
+  if (ext.size() == 0) { 
+    throw std::invalid_argument(
+      "tried to use no wt2 extension: this will overwrite the normal hist");
+  }
+  m_wt2_ext = ext; 
+}
+
+void Histogram::write_to(H5::CommonFG& file, 
+			 const std::string& name, int deflate) 
   const 
+{
+  write_internal(file, name, deflate, m_values); 
+  if (m_wt2) { 
+    write_internal(file, name + m_wt2_ext, deflate, *m_wt2); 
+  }
+}
+
+// ==================== private ==========================
+
+void Histogram::write_internal(
+  H5::CommonFG& file, const std::string& name, int deflate, 
+  const std::vector<double>& values) const
 {
   using namespace H5; 
   const hsize_t n_dims = m_dimsensions.size(); 
@@ -119,8 +148,8 @@ void Histogram::write_to(H5::CommonFG& file, std::string name, int deflate)
   H5::DataSpace data_space(n_dims, &ds_dims[0]); 
   H5::DataSet dataset = file.createDataSet(name, PredType::NATIVE_DOUBLE, 
 					   data_space, params); 
-  assert(m_values.size() == total_entries); 
-  dataset.write(&m_values[0], PredType::NATIVE_DOUBLE); 
+  assert(values.size() == total_entries); 
+  dataset.write(&values[0], PredType::NATIVE_DOUBLE); 
 
   for (unsigned dim = 0; dim < n_dims; dim++) { 
     const Axis& dim_info = m_dimsensions.at(dim); 
@@ -132,12 +161,15 @@ void Histogram::write_to(H5::CommonFG& file, std::string name, int deflate)
   
 }
 
-// ==================== private ==========================
+
 template<typename T> 
 void Histogram::safe_fill(T input, double weight) {
   try { 
     int bin = m_binner->get_bin(input); 
     m_values.at(bin) += weight; 
+    if (m_wt2) { 
+      m_wt2->at(bin) += weight*weight; 
+    }
   }
   catch (std::range_error& r) { 
     if (m_eat_nan) { 
