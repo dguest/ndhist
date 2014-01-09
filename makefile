@@ -7,7 +7,7 @@ BIN          := bin
 SRC          := src
 INC          := include
 PYTHON       := python
-LIB          := lib
+LIB          := $(CURDIR)/lib
 
 #  set search path
 vpath %.o    $(BIN)
