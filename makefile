@@ -1,4 +1,4 @@
-# makefile for JETNET ntuple preprocessor 
+# makefile for ndhist histogram library
 # Author: Dan Guest (dguest@cern.ch)
 # Created: Sat Jan 28 13:09:53 CET 2012
 
@@ -20,12 +20,14 @@ CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -g -std=c++11
 LDFLAGS      := -Wl,--no-undefined 
 
 # --- external dirs 
--include local.mk		# workaround for non-root install
-ifdef HDF_PATH
+# (sometimes hdf is in a werid place, this will work as long as h5ls works)
+HDF_PATH      := $(dir $(shell type -p h5ls | xargs dirname))
+ifndef HDF_PATH
+$(error "couldn't find HDF5 `h5ls` command, HDF5 probably not installed...")
+endif
 COMMON_LIBS   := $(HDF_PATH)/lib
 LIBS          := -L$(COMMON_LIBS) -Wl,-rpath,$(COMMON_LIBS) 
 CXXFLAGS      += -I$(HDF_PATH)/include
-endif 
 
 LIBS += -lhdf5_cpp -lhdf5 
 
