@@ -19,6 +19,9 @@ CXX          ?= g++
 CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -g -std=c++11
 # LDFLAGS      := -Wl,--no-undefined 
 
+# fix for ubuntu (that doesn't use bash for /bin/sh)
+SHELL         := bash
+
 # --- external dirs 
 # (sometimes hdf is in a werid place, this will work as long as h5ls works)
 HDF_PATH      := $(dir $(shell type -p h5ls | xargs dirname))
