@@ -17,7 +17,7 @@ vpath %.hh   $(INC)
 # --- set compiler and flags (roll c options and include paths together)
 CXX          ?= g++
 CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -g -std=c++11
-LDFLAGS      := -Wl,-no-undefined 
+#LDFLAGS      := -Wl,-no-undefined 
 
 # --- external dirs 
 -include local.mk		# workaround for non-root install
