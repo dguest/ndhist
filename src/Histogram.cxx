@@ -126,6 +126,20 @@ void Histogram::write_to(H5::CommonFG& file,
 
 // ==================== private ==========================
 
+namespace { 
+  // attribute adding function 
+  template<typename M> 
+  void write_attr(H5::DataSet&, const std::string& name, M* val); 
+  template<typename M>
+  void write_attr_vec(H5::DataSet&, const std::string& name, M vec); 
+
+  // various overloads to use in template
+  H5::PredType get_type(double val); 
+  H5::PredType get_type(int val); 
+  H5::PredType get_type(unsigned val); 
+  H5::StrType get_type(const std::string& val); 
+}
+
 void Histogram::write_internal(
   H5::CommonFG& file, const std::string& name, int deflate, 
   const std::vector<double>& values) const
@@ -143,9 +157,9 @@ void Histogram::write_internal(
     total_entries *= bins; 
   }
   H5::DSetCreatPropList params; 
-  params.setChunk(n_dims, &ds_chunks[0]);
+  params.setChunk(n_dims, ds_chunks.data());
   params.setDeflate(deflate); 
-  H5::DataSpace data_space(n_dims, &ds_dims[0]); 
+  H5::DataSpace data_space(n_dims, ds_dims.data()); 
   H5::DataSet dataset = file.createDataSet(name, PredType::NATIVE_DOUBLE, 
 					   data_space, params); 
   assert(values.size() == total_entries); 
@@ -155,9 +169,7 @@ void Histogram::write_internal(
     const Axis& dim_info = m_dimsensions.at(dim); 
     dim_atr(dataset, dim, dim_info); 
   }
-  dataset.createAttribute
-    ("nan", PredType::NATIVE_INT, H5S_SCALAR).write
-    (PredType::NATIVE_INT, &m_n_nan); 
+  write_attr(dataset, "nan", &m_n_nan); 
   
 }
 
@@ -185,27 +197,12 @@ void Histogram::dim_atr(H5::DataSet& target, unsigned number,
 			const Axis& dim) const
 {
   using namespace H5;
-  DataSpace space(H5S_SCALAR);
-  IntType int_type(PredType::NATIVE_INT);
-  IntType uint_type(PredType::NATIVE_UINT); 
-  StrType str_type(PredType::C_S1, H5T_VARIABLE);
 
-  std::string axis_name = dim.name + "_axis"; 
-  Attribute axis = target.createAttribute(axis_name, uint_type, space);
-  axis.write(uint_type, &number);
-
-  std::string n_bin_name = dim.name + "_bins"; 
-  Attribute n_bin = target.createAttribute(n_bin_name, int_type, space); 
-  n_bin.write(int_type, &dim.n_bins); 
-  FloatType f_type(PredType::NATIVE_DOUBLE); 
-  Attribute max = target.createAttribute(dim.name + "_max", f_type, space); 
-  max.write(f_type, &dim.high); 
-  Attribute min = target.createAttribute(dim.name + "_min", f_type, space); 
-  min.write(f_type, &dim.low); 
-
-  std::string unit_name = dim.name + "_units"; 
-  Attribute units = target.createAttribute(unit_name, str_type, space); 
-  units.write(str_type, &dim.units); 
+  write_attr(target, dim.name + "_axis", &number); 
+  write_attr(target, dim.name + "_bins", &dim.n_bins); 
+  write_attr(target, dim.name + "_max", &dim.high); 
+  write_attr(target, dim.name + "_min", &dim.low); 
+  write_attr(target, dim.name + "_units", &dim.units); 
 }
 
 int Histogram::get_chunk_size(int input) const { 
@@ -234,5 +231,29 @@ void Histogram::check_dimensions(const std::vector<Axis>& axes) {
   }
 }
 
+namespace { 
+  template<typename M> 
+  void write_attr(H5::DataSet& loc, const std::string& name, M* value) { 
+    auto type = get_type(*value); 
+    loc.createAttribute(name, type, H5S_SCALAR).write(type, value); 
+  }
+  // template<typename M> 
+  // void write_attr_vec(H5::DataSet& loc, const std::string& name, M vec) { 
+  //   auto type = get_type(*vec); 
+  //   loc.createAttribute(name, type, H5S_SCALAR).write(type, value); 
+  // }
 
+  H5::PredType get_type(int) { 
+    return H5::PredType::NATIVE_INT; 
+  }
+  H5::PredType get_type(unsigned) { 
+    return H5::PredType::NATIVE_UINT; 
+  }
+  H5::PredType get_type(double) { 
+    return H5::PredType::NATIVE_DOUBLE; 
+  }
+  H5::StrType get_type(const std::string&) { 
+    return H5::StrType(H5::PredType::C_S1, H5T_VARIABLE);
+  }
 
+}
