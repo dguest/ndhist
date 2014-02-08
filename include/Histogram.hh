@@ -5,7 +5,15 @@ namespace hist {
   // Histogram::fill(...) will throw a std::range_error if it gets nan
   // set this flag to simply count the number of nan. 
   const unsigned eat_nan = 1u << 0; 
+
+  // Save a second histogram weighted by weight*2. (for statistical error)
+  // Second histogram has default name <name>Wt2. 
   const unsigned wt2     = 1u << 1; 
+
+  // Save using the "old" <axis name>_<property> attribute naming scheme. 
+  // (the "new" way saves arrays of values, keyed by <property>, 
+  // indexed by the axis number)
+  const unsigned flat_attributes = 1u << 2; 
 }
 
 namespace H5 { 
@@ -54,15 +62,14 @@ private:
     H5::CommonFG& file, const std::string& name, int deflate, 
     const std::vector<double>& values) const; 
   template<typename T> void safe_fill(T, double); 
-  void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim) const; 
   int get_chunk_size(int) const; 
-  void check_dimensions(const std::vector<Axis>&); 
   IBinner* m_binner; 
   std::vector<Axis> m_dimsensions; 
   std::vector<double> m_values; 
   std::vector<int> m_chunking; 
   int m_n_nan; 
   bool m_eat_nan; 
+  bool m_old_serialization; 
   std::vector<double>* m_wt2; 
   std::string m_wt2_ext; 
 }; 
