@@ -1,6 +1,7 @@
 #include "Histogram.hh"
-#include "H5Cpp.h"
 #include "Binners.hh"
+#include "H5Cpp.h"
+
 #include <stdexcept>
 #include <set>
 #include <algorithm>
@@ -12,6 +13,9 @@ namespace {
   // for adding annotaton 
   void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim); 
 }
+
+//______________________________________________________________________
+// constructors / destructors / copy / swap
 
 Histogram::Histogram(int n_bins, double low, double high, std::string units, 
 		     unsigned flags): 
@@ -95,6 +99,9 @@ void swap(Histogram& f, Histogram& s)
   swap(f.m_wt2_ext,     s.m_wt2_ext); 
 }
 
+//______________________________________________________________________
+// fill methods 
+
 void Histogram::fill(const std::map<std::string, double>& input, 
 		     double weight) { 
   safe_fill(input, weight); 
@@ -114,6 +121,9 @@ void Histogram::fill(double value, double weight) {
   std::vector<double> v(1,value); 
   safe_fill(v, weight); 
 }
+
+//______________________________________________________________________
+// file IO related 
 
 void Histogram::set_wt_ext(const std::string& ext) { 
   if (ext.size() == 0) { 
@@ -135,10 +145,14 @@ void Histogram::write_to(H5::CommonFG& file,
 
 // ==================== private ==========================
 
+// forward declare of helper functions
 namespace { 
+
   // attribute adding function 
   template<typename M> 
   void write_attr(H5::DataSet&, const std::string& name, M* val); 
+
+  // vector attribute adding function
   template<typename M>
   void write_attr_vec(H5::DataSet&, const std::string& name, M vec); 
 
@@ -152,31 +166,40 @@ namespace {
   H5::StrType get_type(const std::string& val); 
 }
 
+// write method called by the public Histogram write methods
 void Histogram::write_internal(
   H5::CommonFG& file, const std::string& name, int deflate, 
   const std::vector<double>& values) const
 {
+  if (H5Lexists(file.getLocId(), name.c_str(), H5P_DEFAULT)) { 
+    throw HistogramSaveError("tried to overwrite '" + name + "'"); 
+  }
   using namespace H5; 
+
+  // define the DataSpace
   const hsize_t n_dims = m_dimsensions.size(); 
   std::vector<hsize_t> ds_dims(n_dims); 
   std::vector<hsize_t> ds_chunks(n_dims); 
-  hsize_t total_entries = 1;
+  hsize_t total_entries = 1;	
   for (unsigned dim = 0; dim < n_dims; dim++) { 
     // 2 extra for overflow bins
     hsize_t bins = m_dimsensions.at(dim).n_bins + 2; 	
     ds_dims.at(dim) = bins; 
+    // datasets can be "chucked", i.e. stored and retrieved as smaller 
+    // pieces. Probably not needed for HEP histograms. 
     ds_chunks.at(dim) = get_chunk_size(bins); // for now just returns value
     total_entries *= bins; 
   }
+  H5::DataSpace data_space(n_dims, ds_dims.data()); 
+
+  // write the file
   H5::DSetCreatPropList params; 
   params.setChunk(n_dims, ds_chunks.data());
   params.setDeflate(deflate); 
-  H5::DataSpace data_space(n_dims, ds_dims.data()); 
   H5::DataSet dataset = file.createDataSet(
     name, PredType::NATIVE_DOUBLE, data_space, params); 
   assert(values.size() == total_entries); 
-  dataset.write(values.data(), PredType::NATIVE_DOUBLE); 
-
+    dataset.write(values.data(), PredType::NATIVE_DOUBLE); 
   if (m_old_serialization) { 
     for (unsigned dim = 0; dim < n_dims; dim++) { 
       const Axis& dim_info = m_dimsensions.at(dim); 
@@ -186,10 +209,10 @@ void Histogram::write_internal(
     add_axis_attributes(dataset, m_dimsensions); 
   }
   write_attr(dataset, "nan", &m_n_nan); 
-  
 }
 
-
+// Internal wrapper on fill method. Takes care of NaN inputs, and 
+// filling the weight**2 hist (if it exists)
 template<typename T> 
 void Histogram::safe_fill(T input, double weight) {
   try { 
@@ -209,14 +232,13 @@ void Histogram::safe_fill(T input, double weight) {
   }
 }
 
-
+// internal chunking function (may do more elaborate chunking someday)
 int Histogram::get_chunk_size(int input) const { 
   return input; 
 }
 
-
 namespace { 
-
+  // throw exceptions if the constructor doesn't make sense. 
   void check_dimensions(const std::vector<Axis>& axes) { 
     if (axes.size() == 0) {
       throw std::invalid_argument(
@@ -247,6 +269,8 @@ namespace {
     }
   }
 
+  // function to add axis attributes via the "flat" method (adds a magic '_' 
+  // between the name of the axis and the property). 
   void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim)
   {
     using namespace H5;
@@ -258,6 +282,7 @@ namespace {
     write_attr(target, dim.name + "_units", &dim.units); 
   }
 
+  // much less ugly function to add axis attributes as arrays. 
   void add_axis_attributes(H5::DataSet& targ, const std::vector<Axis>& axes)
   { 
     std::vector<std::string> names; 
@@ -274,12 +299,12 @@ namespace {
     }
     write_attr_vec(targ, "names", names); 
     write_attr_vec(targ, "n_bins", bins); 
-    write_attr_vec(targ, "mins", mins); 
-    write_attr_vec(targ, "maxs", maxs); 
+    write_attr_vec(targ, "min", mins); 
+    write_attr_vec(targ, "max", maxs); 
     write_attr_vec(targ, "units", units); 
   }
 
-
+  // templates to write attributes. 
   template<typename M> 
   void write_attr(H5::DataSet& loc, const std::string& name, M* value) { 
     auto type = get_type(*value); 
@@ -293,7 +318,7 @@ namespace {
     loc.createAttribute(name, type, data_space).write(type, vec.data()); 
   }
 
-
+  // called by the attribute writers to get the correct datatype. 
   H5::PredType get_type(int) { 
     return H5::PredType::NATIVE_INT; 
   }
@@ -310,3 +335,11 @@ namespace {
   }
 
 }
+
+//______________________________________________________________________
+// exception definitions 
+
+HistogramSaveError::HistogramSaveError(const std::string& what): 
+  std::runtime_error(what) 
+{}
+

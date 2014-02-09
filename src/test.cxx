@@ -126,6 +126,11 @@ int write_test() {
 
   H5::H5File file("test.h5", H5F_ACC_TRUNC); 
   hist.write_to(file, "testhist"); 
+  try { 
+    hist.write_to(file, "testhist"); 
+  } catch (HistogramSaveError& err) { 
+    printf("passed: %s\n", err.what()); 
+  }
 		  
   return 0; 
 }
