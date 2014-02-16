@@ -145,10 +145,11 @@ void Histogram::write_to(H5::CommonFG& file,
 
 // ==================== private ==========================
 
-// forward declare of helper functions
+// ____________________________________________________________________
+// attribute adding forward declarations
+
 namespace { 
 
-  // attribute adding function 
   template<typename M> 
   void write_attr(H5::DataSet&, const std::string& name, M val); 
 
@@ -171,8 +172,11 @@ namespace {
   H5::PredType get_type(double val); 
   H5::PredType get_type(int val); 
   H5::PredType get_type(unsigned val); 
-  H5::StrType get_type(const std::string val); 
+  H5::StrType get_type(std::string val); 
 }
+
+// ______________________________________________________________________
+// various Histogram internal methods
 
 // write method called by the public Histogram write methods
 void Histogram::write_internal(
@@ -277,6 +281,9 @@ namespace {
     }
   }
 
+  //________________________________________________________________________
+  // implementation of the attribute adder functions
+
   // function to add axis attributes via the "flat" method (adds a magic '_' 
   // between the name of the axis and the property). 
   void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim)
@@ -340,6 +347,9 @@ namespace {
     auto type = get_type(vec.front()); 
     hsize_t size = vec.size(); 
     H5::DataSpace data_space(1, {&size}); 
+
+    // HDF5 wants a char** for the strings. To be keep this memory safe, we
+    // store the char* in a vector and access the char** with vec.data().
     std::vector<const char *> string_pointers;
     for (auto str: vec) { 
       string_pointers.push_back(str.data());
@@ -358,7 +368,7 @@ namespace {
   H5::PredType get_type(double) { 
     return H5::PredType::NATIVE_DOUBLE; 
   }
-  H5::StrType get_type(const std::string) { 
+  H5::StrType get_type(std::string) { 
     auto type = H5::StrType(H5::PredType::C_S1, H5T_VARIABLE);
     type.setCset(H5T_CSET_UTF8); 
     return type; 
