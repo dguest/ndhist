@@ -12,6 +12,13 @@ namespace {
   void check_dimensions(const std::vector<Axis>& axes); 
   // for adding annotaton 
   void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim); 
+
+  char *convert(const std::string & s)
+  {
+     char *pc = new char[s.size()+1];
+     std::strcpy(pc, s.c_str());
+     return pc; 
+  }
 }
 
 //______________________________________________________________________
@@ -155,6 +162,10 @@ namespace {
   // vector attribute adding function
   template<typename M>
   void write_attr_vec(H5::DataSet&, const std::string& name, M vec); 
+
+  template <>
+  void write_attr_vec(H5::DataSet& loc, const std::string& name, 
+    std::vector<std::string> vec);
 
   // store attributes as arrays (indexed by axis number)
   void add_axis_attributes(H5::DataSet&, const std::vector<Axis>& axes); 
@@ -316,6 +327,22 @@ namespace {
     hsize_t size = vec.size(); 
     H5::DataSpace data_space(1, {&size}); 
     loc.createAttribute(name, type, data_space).write(type, vec.data()); 
+  }
+
+  template <>
+  void write_attr_vec(H5::DataSet& loc, const std::string& name, 
+    std::vector<std::string> vec) { 
+    auto type = get_type(*vec.data()); 
+    std::vector<char*> tmp(vec.size());
+    for (auto &entry : vec)
+    {
+      char* str_buf = convert(entry);
+      tmp.push_back(str_buf);
+      delete[] str_buf;
+    }
+    hsize_t size = tmp.size(); 
+    H5::DataSpace data_space(1, {&size}); 
+    loc.createAttribute(name.c_str(), type, data_space).write(type, tmp.data()); 
   }
 
   // called by the attribute writers to get the correct datatype. 
