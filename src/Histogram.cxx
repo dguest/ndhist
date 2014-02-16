@@ -12,13 +12,6 @@ namespace {
   void check_dimensions(const std::vector<Axis>& axes); 
   // for adding annotaton 
   void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim); 
-
-  char *convert(const std::string & s)
-  {
-     char *pc = new char[s.size()+1];
-     std::strcpy(pc, s.c_str());
-     return pc; 
-  }
 }
 
 //______________________________________________________________________
