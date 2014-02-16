@@ -172,10 +172,6 @@ namespace {
   void write_attr_vec(H5::DataSet&, const std::string& name, 
 		      const std::vector<std::string>&); 
 
-  template <>
-  void write_attr_vec(H5::DataSet& loc, const std::string& name, 
-    std::vector<std::string> vec);
-
   // store attributes as arrays (indexed by axis number)
   void add_axis_attributes(H5::DataSet&, const std::vector<Axis>& axes); 
 
