@@ -14,6 +14,16 @@ attributes are saved:
 - `max`: upper range of the axis
 - `units`: (optional) string indicating units
 
-If the hist::eat_nan flag is used, Histogram will also record the number
-of NaN inputs the binner encounters in the attribute 'nan'. 
-There is only one NaN counter for all axes. 
+### Constructor Flags
+
+Several flags can be passed to the Histogram constructor. 
+
+ - `hist::wt2`: Fill a second histogram with weights of weight^2. The
+   second histogram will be saved as "<first histogram name>Wt2". This is
+   useful to calculate statistical error in weighted samples, but will
+   double the amount of space required in memory / on disk.
+
+ - `hist::eat_nan`: Without this flag, passing `fill(...)` NaN results in a
+   `std::range_error`. With it, Histogram will record the number of times
+   NaN is passed, and save an additional attribute `nan`.  There is only
+   one NaN counter for all axes.
