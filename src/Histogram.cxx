@@ -156,6 +156,13 @@ namespace {
   template<typename M>
   void write_attr_vec(H5::DataSet&, const std::string& name, M vec); 
 
+  // need specialization for strings...
+  template<> 
+  void write_attr(H5::DataSet&, const std::string& name, std::string* val); 
+  template<>
+  void write_attr_vec(H5::DataSet&, const std::string& name, 
+		      std::vector<std::string>); 
+
   // store attributes as arrays (indexed by axis number)
   void add_axis_attributes(H5::DataSet&, const std::vector<Axis>& axes); 
 
@@ -163,7 +170,7 @@ namespace {
   H5::PredType get_type(double val); 
   H5::PredType get_type(int val); 
   H5::PredType get_type(unsigned val); 
-  H5::StrType get_type(const std::string& val); 
+  H5::StrType get_str_type(); 
 }
 
 // write method called by the public Histogram write methods
@@ -279,7 +286,7 @@ namespace {
     write_attr(target, dim.name + "_bins", &dim.n_bins); 
     write_attr(target, dim.name + "_max", &dim.high); 
     write_attr(target, dim.name + "_min", &dim.low); 
-    write_attr(target, dim.name + "_units", &dim.units); 
+    // write_attr(target, dim.name + "_units", &dim.units); 
   }
 
   // much less ugly function to add axis attributes as arrays. 
@@ -318,6 +325,27 @@ namespace {
     loc.createAttribute(name, type, data_space).write(type, vec.data()); 
   }
 
+  // overloads for strings
+  template<> 
+  void write_attr(H5::DataSet& loc, const std::string& name, 
+		  std::string* value) { 
+    auto type = get_str_type(); 
+    loc.createAttribute(name, type, H5S_SCALAR).write(type, value->data()); 
+  }
+  template<> 
+  void write_attr_vec(H5::DataSet& loc, const std::string& name, 
+		      std::vector<std::string> vec) { 
+    auto type = get_str_type(); 
+    hsize_t size = vec.size(); 
+    H5::DataSpace data_space(1, {&size}); 
+    std::vector<const char *> string_pointers;
+    for (auto str: vec) { 
+      string_pointers.push_back(str.data());
+    }
+    loc.createAttribute(name, type, data_space).write(
+      type, string_pointers.data()); 
+  }
+
   // called by the attribute writers to get the correct datatype. 
   H5::PredType get_type(int) { 
     return H5::PredType::NATIVE_INT; 
@@ -328,7 +356,7 @@ namespace {
   H5::PredType get_type(double) { 
     return H5::PredType::NATIVE_DOUBLE; 
   }
-  H5::StrType get_type(const std::string&) { 
+  H5::StrType get_str_type() { 
     auto type = H5::StrType(H5::PredType::C_S1, H5T_VARIABLE);
     type.setCset(H5T_CSET_UTF8); 
     return type; 
