@@ -211,7 +211,7 @@ void Histogram::write_internal(
   H5::DataSet dataset = file.createDataSet(
     name, PredType::NATIVE_DOUBLE, data_space, params);
   assert(values.size() == total_entries);
-    dataset.write(values.data(), PredType::NATIVE_DOUBLE);
+  dataset.write(values.data(), PredType::NATIVE_DOUBLE);
   if (m_old_serialization) {
     for (unsigned dim = 0; dim < n_dims; dim++) {
       const Axis& dim_info = m_dimsensions.at(dim);
