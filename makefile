@@ -23,10 +23,10 @@ CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -g -std=c++11
 SHELL         := bash
 
 # --- external dirs
-# (sometimes hdf is in a werid place, this will work as long as h5ls works)
-HDF_PATH      := $(dir $(shell type -p h5ls | xargs dirname))
+# (sometimes hdf is in a werid place, this will work as long as h5cc works)
+HDF_PATH      := $(dir $(shell type -p h5cc | xargs dirname))
 ifndef HDF_PATH
-$(error "couldn't find HDF5 `h5ls` command, HDF5 probably not installed...")
+$(error "couldn't find HDF5 `h5cc` command, HDF5 probably not installed...")
 endif
 COMMON_LIBS   := $(HDF_PATH)/lib
 LIBS          := -L$(COMMON_LIBS) -Wl,-rpath,$(COMMON_LIBS)
