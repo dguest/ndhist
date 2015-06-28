@@ -9,6 +9,7 @@ if [[ $# == 0 ]] ; then
 fi
 BASE_DIR=$(dirname $(dirname $0))
 case $1 in
-    --libs) echo "-L${BASE_DIR}/lib -lndhist" ;;
+    --libs) echo "-L${BASE_DIR}/lib -Wl,-rpath,${BASE_DIR}/lib -lndhist";;
     --cflags) echo "-I${BASE_DIR}/include" ;;
+    *) echo "ERROR, $1 is undefined" >&2 ; exit 1;
 esac
