@@ -3,6 +3,7 @@
 # Created: Sat Jan 28 13:09:53 CET 2012
 
 # --- set dirs
+BUILD        := build
 BIN          := bin
 SRC          := src
 INC          := include
@@ -10,7 +11,7 @@ PYTHON       := python
 LIB          := $(CURDIR)/lib
 
 #  set search path
-vpath %.o    $(BIN)
+vpath %.o    $(BUILD)
 vpath %.cxx  $(SRC)
 vpath %.hh   $(INC)
 
@@ -46,11 +47,11 @@ ALLOUTPUT    := test $(LIB)/libndhist.so
 
 all: $(ALLOUTPUT)
 
-test: $(GEN_OBJ:%=$(BIN)/%) $(EXE_OBJ:%=$(BIN)/%)
+test: $(GEN_OBJ:%=$(BUILD)/%) $(EXE_OBJ:%=$(BUILD)/%)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS)
 
-$(LIB)/libndhist.so: $(GEN_OBJ:%=$(BIN)/%)
+$(LIB)/libndhist.so: $(GEN_OBJ:%=$(BUILD)/%)
 	@mkdir -p $(LIB)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS) -shared
@@ -58,13 +59,13 @@ $(LIB)/libndhist.so: $(GEN_OBJ:%=$(BIN)/%)
 # --------------------------------------------------
 
 # compile rule
-$(BIN)/%.o: %.cxx
+$(BUILD)/%.o: %.cxx
 	@echo compiling $<
-	@mkdir -p $(BIN)
+	@mkdir -p $(BUILD)
 	@$(CXX) -c $(CXXFLAGS) $< -o $@
 
 # use auto dependency generation
-DEP = $(BIN)
+DEP = $(BUILD)
 
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),rmdep)
@@ -72,7 +73,7 @@ include  $(ALLOBJ:%.o=$(DEP)/%.d)
 endif
 endif
 
-DEPTARGSTR = -MT $(BIN)/$*.o -MT $(DEP)/$*.d
+DEPTARGSTR = -MT $(BUILD)/$*.o -MT $(DEP)/$*.d
 $(DEP)/%.d: %.cxx
 	@echo making dependencies for $<
 	@mkdir -p $(DEP)
@@ -82,8 +83,8 @@ $(DEP)/%.d: %.cxx
 .PHONY : clean rmdep
 CLEANLIST     = *~ *.o *.o~ *.d core
 clean:
-	rm -fr $(CLEANLIST) $(CLEANLIST:%=$(BIN)/%) $(CLEANLIST:%=$(DEP)/%)
-	rm -fr $(BIN) $(ALLOUTPUT)
+	rm -fr $(CLEANLIST) $(CLEANLIST:%=$(BUILD)/%) $(CLEANLIST:%=$(DEP)/%)
+	rm -fr $(BUILD) $(ALLOUTPUT)
 
 rmdep:
 	rm -f $(DEP)/*.d
