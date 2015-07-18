@@ -55,11 +55,11 @@ public:
 
   // Histograms are safe to copy and assign. Copies are deep.
   Histogram(const Histogram&);
+  Histogram(Histogram&&);
   Histogram& operator=(Histogram);
 
-  // destructor and swap operator.
+  // destructor
   ~Histogram();
-  friend void swap(Histogram&, Histogram&);
 
   // -------------------- Fill methods ---------------------------
 

@@ -75,10 +75,25 @@ Histogram::Histogram(const Histogram& old):
   }
 }
 
+Histogram::Histogram(Histogram&& old):
+  m_binner(old.m_binner),
+  m_dimsensions(std::move(old.m_dimsensions)),
+  m_values(std::move(old.m_values)),
+  m_chunking(std::move(old.m_chunking)),
+  m_n_nan(old.m_n_nan),
+  m_eat_nan(old.m_eat_nan),
+  m_old_serialization(old.m_old_serialization),
+  m_wt2(old.m_wt2),
+  m_wt2_ext(std::move(old.m_wt2_ext))
+{
+  // take ownership of the pointers
+  old.m_binner = 0;
+  old.m_wt2 = 0;
+}
+
 Histogram& Histogram::operator=(Histogram old)
 {
-  using std::swap;
-  swap(*this, old);
+  std::swap(*this, old);
   return *this;
 }
 
@@ -86,20 +101,6 @@ Histogram::~Histogram()
 {
   delete m_binner;
   delete m_wt2;
-}
-
-void swap(Histogram& f, Histogram& s)
-{
-  using std::swap;
-  swap(f.m_binner,      s.m_binner);
-  swap(f.m_dimsensions, s.m_dimsensions);
-  swap(f.m_values,      s.m_values);
-  swap(f.m_chunking,    s.m_chunking);
-  swap(f.m_n_nan,       s.m_n_nan);
-  swap(f.m_eat_nan,     s.m_eat_nan);
-  swap(f.m_wt2,         s.m_wt2);
-  swap(f.m_wt2_ext,     s.m_wt2_ext);
-  swap(f.m_old_serialization, s.m_old_serialization);
 }
 
 //______________________________________________________________________
