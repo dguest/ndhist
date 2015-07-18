@@ -162,10 +162,8 @@ namespace {
   void write_attr_vec(H5::DataSet&, const std::string& name, const M& vec);
 
   // need specialization for strings...
-  template<>
   void write_attr(H5::DataSet&, const std::string& name,
 		  const std::string& val);
-  template<>
   void write_attr_vec(H5::DataSet&, const std::string& name,
 		      const std::vector<std::string>&);
 
@@ -339,13 +337,11 @@ namespace {
   }
 
   // overloads for strings
-  template<>
   void write_attr(H5::DataSet& loc, const std::string& name,
 		  const std::string& value) {
     auto type = get_type(value);
     loc.createAttribute(name, type, H5S_SCALAR).write(type, value.data());
   }
-  template<>
   void write_attr_vec(H5::DataSet& loc, const std::string& name,
 		      const std::vector<std::string>& vec) {
     auto type = get_type(vec.front());
