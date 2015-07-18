@@ -64,7 +64,9 @@ Histogram::Histogram(const Histogram& old):
   m_chunking(old.m_chunking),
   m_n_nan(old.m_n_nan),
   m_eat_nan(old.m_eat_nan),
-  m_wt2(0)
+  m_old_serialization(old.m_old_serialization),
+  m_wt2(0),
+  m_wt2_ext(old.m_wt2_ext)
 {
   assert(old.m_binner);
   m_binner = old.m_binner->clone();
@@ -97,6 +99,7 @@ void swap(Histogram& f, Histogram& s)
   swap(f.m_eat_nan,     s.m_eat_nan);
   swap(f.m_wt2,         s.m_wt2);
   swap(f.m_wt2_ext,     s.m_wt2_ext);
+  swap(f.m_old_serialization, s.m_old_serialization);
 }
 
 //______________________________________________________________________
