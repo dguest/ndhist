@@ -23,11 +23,6 @@ namespace hist {
   // Save a second histogram weighted by weight^2. (for statistical error)
   // Second histogram has default name <name>Wt2.
   const unsigned wt2     = 1u << 1;
-
-  // Save using the "old" <axis name>_<property> attribute naming scheme.
-  // (the "new" way saves arrays of values, keyed by <property>,
-  // indexed by the axis number)
-  const unsigned flat_attributes = 1u << 2;
 }
 
 #endif

@@ -8,10 +8,8 @@
 #include <cassert>
 
 namespace {
-  // internal check used in setup
+  // internal check used in setup (will throw invalid_argument)
   void check_dimensions(const std::vector<Axis>& axes);
-  // for adding annotaton
-  void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim);
 }
 
 //______________________________________________________________________
@@ -35,7 +33,6 @@ Histogram::Histogram(const std::vector<Axis>& dims, unsigned flags) :
   m_dimsensions(dims),
   m_n_nan(0),
   m_eat_nan(flags & hist::eat_nan),
-  m_old_serialization(flags & hist::flat_attributes),
   m_wt2(0),
   m_wt2_ext("Wt2")
 {
@@ -64,7 +61,6 @@ Histogram::Histogram(const Histogram& old):
   m_chunking(old.m_chunking),
   m_n_nan(old.m_n_nan),
   m_eat_nan(old.m_eat_nan),
-  m_old_serialization(old.m_old_serialization),
   m_wt2(0),
   m_wt2_ext(old.m_wt2_ext)
 {
@@ -82,7 +78,6 @@ Histogram::Histogram(Histogram&& old):
   m_chunking(std::move(old.m_chunking)),
   m_n_nan(old.m_n_nan),
   m_eat_nan(old.m_eat_nan),
-  m_old_serialization(old.m_old_serialization),
   m_wt2(old.m_wt2),
   m_wt2_ext(std::move(old.m_wt2_ext))
 {
@@ -153,28 +148,15 @@ void Histogram::write_to(H5::CommonFG& file,
 // attribute adding forward declarations
 
 namespace {
-
-  template<typename M>
-  void write_attr(H5::DataSet&, const std::string& name, M val);
-
-  // vector attribute adding function
-  template<typename M>
-  void write_attr_vec(H5::DataSet&, const std::string& name, const M& vec);
-
-  // need specialization for strings...
-  void write_attr(H5::DataSet&, const std::string& name,
-		  const std::string& val);
-  void write_attr_vec(H5::DataSet&, const std::string& name,
-		      const std::vector<std::string>&);
-
   // store attributes as arrays (indexed by axis number)
   void add_axis_attributes(H5::DataSet&, const std::vector<Axis>& axes);
 
-  // various overloads to use in template
-  H5::PredType get_type(double val);
+  // utility function to save any other information
+  template<typename M>
+  void write_attr(H5::DataSet&, const std::string& name, M val);
+
+  // type getter used in the template (adding other types should be trivial)
   H5::PredType get_type(int val);
-  H5::PredType get_type(unsigned val);
-  H5::StrType get_type(std::string val);
 }
 
 // ______________________________________________________________________
@@ -214,14 +196,8 @@ void Histogram::write_internal(
     name, PredType::NATIVE_DOUBLE, data_space, params);
   assert(values.size() == total_entries);
   dataset.write(values.data(), PredType::NATIVE_DOUBLE);
-  if (m_old_serialization) {
-    for (unsigned dim = 0; dim < n_dims; dim++) {
-      const Axis& dim_info = m_dimsensions.at(dim);
-      dim_atr(dataset, dim, dim_info);
-    }
-  } else {
-    add_axis_attributes(dataset, m_dimsensions);
-  }
+  // add some attributes
+  add_axis_attributes(dataset, m_dimsensions);
   write_attr(dataset, "nan", m_n_nan);
 }
 
@@ -286,39 +262,50 @@ namespace {
   //________________________________________________________________________
   // implementation of the attribute adder functions
 
-  // function to add axis attributes via the "flat" method (adds a magic '_'
-  // between the name of the axis and the property).
-  void dim_atr(H5::DataSet& target, unsigned number, const Axis& dim)
-  {
-    using namespace H5;
-
-    write_attr(target, dim.name + "_axis", number);
-    write_attr(target, dim.name + "_bins", dim.n_bins);
-    write_attr(target, dim.name + "_max", dim.high);
-    write_attr(target, dim.name + "_min", dim.low);
-    write_attr(target, dim.name + "_units", dim.units);
-  }
+  // axis structure which is safe to store in HDF5
+  struct H5Axis {
+    const char* name;
+    int n_bins;
+    double min;
+    double max;
+    const char* units;
+  };
 
   // much less ugly function to add axis attributes as arrays.
   void add_axis_attributes(H5::DataSet& targ, const std::vector<Axis>& axes)
   {
-    std::vector<std::string> names;
-    std::vector<int> bins;
-    std::vector<double> mins;
-    std::vector<double> maxs;
-    std::vector<std::string> units;
-    for (auto axis: axes) {
-      names.push_back(axis.name);
-      bins.push_back(axis.n_bins);
-      mins.push_back(axis.low);
-      maxs.push_back(axis.high);
-      units.push_back(axis.units);
+    // build the axis objects
+    std::vector<H5Axis> h5_axes;
+    for (const auto& ax: axes){
+      H5Axis hax;
+      hax.name = ax.name.c_str();
+      hax.n_bins = ax.n_bins;
+      hax.min = ax.low;
+      hax.max = ax.high;
+      hax.units = ax.units.c_str();
+      h5_axes.push_back(hax);
     }
-    write_attr_vec(targ, "names", names);
-    write_attr_vec(targ, "n_bins", bins);
-    write_attr_vec(targ, "min", mins);
-    write_attr_vec(targ, "max", maxs);
-    write_attr_vec(targ, "units", units);
+    // setup the dataspace
+    hsize_t nax = h5_axes.size();
+    hsize_t dim[] = {nax};
+    H5::DataSpace space(1, dim);
+
+    // setup data type
+    auto stype = H5::StrType(H5::PredType::C_S1, H5T_VARIABLE);
+    stype.setCset(H5T_CSET_UTF8);
+    auto dtype = H5::PredType::NATIVE_DOUBLE;
+    auto itype = H5::PredType::NATIVE_INT;
+
+    H5::CompType type(sizeof(H5Axis));
+    type.insertMember("name",   HOFFSET(H5Axis, name  ), stype);
+    type.insertMember("n_bins", HOFFSET(H5Axis, n_bins), itype);
+    type.insertMember("min",    HOFFSET(H5Axis, min   ), dtype);
+    type.insertMember("max",    HOFFSET(H5Axis, max   ), dtype);
+    type.insertMember("units",  HOFFSET(H5Axis, units ), stype);
+
+    // write the attribute
+    auto attr = targ.createAttribute("axes", type, space);
+    attr.write(type, h5_axes.data());
   }
 
   // templates to write attributes.
@@ -327,51 +314,10 @@ namespace {
     auto type = get_type(value);
     loc.createAttribute(name, type, H5S_SCALAR).write(type, &value);
   }
-  template<typename M>
-  void write_attr_vec(H5::DataSet& loc, const std::string& name,
-		      const M& vec) {
-    auto type = get_type(vec.front());
-    hsize_t size = vec.size();
-    H5::DataSpace data_space(1, {&size});
-    loc.createAttribute(name, type, data_space).write(type, vec.data());
-  }
-
-  // overloads for strings
-  void write_attr(H5::DataSet& loc, const std::string& name,
-		  const std::string& value) {
-    auto type = get_type(value);
-    loc.createAttribute(name, type, H5S_SCALAR).write(type, value.data());
-  }
-  void write_attr_vec(H5::DataSet& loc, const std::string& name,
-		      const std::vector<std::string>& vec) {
-    auto type = get_type(vec.front());
-    hsize_t size = vec.size();
-    H5::DataSpace data_space(1, {&size});
-
-    // HDF5 wants a char** for the strings. To be keep this memory safe, we
-    // store the char* in a vector and access the char** with vec.data().
-    std::vector<const char *> string_pointers;
-    for (auto str: vec) {
-      string_pointers.push_back(str.data());
-    }
-    loc.createAttribute(name, type, data_space).write(
-      type, string_pointers.data());
-  }
 
   // called by the attribute writers to get the correct datatype.
   H5::PredType get_type(int) {
     return H5::PredType::NATIVE_INT;
-  }
-  H5::PredType get_type(unsigned) {
-    return H5::PredType::NATIVE_UINT;
-  }
-  H5::PredType get_type(double) {
-    return H5::PredType::NATIVE_DOUBLE;
-  }
-  H5::StrType get_type(std::string) {
-    auto type = H5::StrType(H5::PredType::C_S1, H5T_VARIABLE);
-    type.setCset(H5T_CSET_UTF8);
-    return type;
   }
 
 }

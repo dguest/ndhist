@@ -99,7 +99,6 @@ private:
   std::vector<int> m_chunking;
   int m_n_nan;
   bool m_eat_nan;
-  bool m_old_serialization;
   std::vector<double>* m_wt2;
   std::string m_wt2_ext;
 };
