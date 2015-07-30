@@ -88,9 +88,23 @@ Histogram::Histogram(Histogram&& old):
 
 Histogram& Histogram::operator=(Histogram old)
 {
-  std::swap(*this, old);
+  swap(old);
   return *this;
 }
+
+void Histogram::swap(Histogram& old)
+{
+  using std::swap;
+  swap(m_binner,      old.m_binner);
+  swap(m_dimsensions, old.m_dimsensions);
+  swap(m_values,      old.m_values);
+  swap(m_chunking,    old.m_chunking);
+  swap(m_n_nan,       old.m_n_nan);
+  swap(m_eat_nan,     old.m_eat_nan);
+  swap(m_wt2,         old.m_wt2);
+  swap(m_wt2_ext,     old.m_wt2_ext);
+}
+
 
 Histogram::~Histogram()
 {
@@ -329,3 +343,9 @@ HistogramSaveError::HistogramSaveError(const std::string& what):
   std::runtime_error(what)
 {}
 
+// ____________________________________________________________________
+// swap
+void swap(Histogram& h1, Histogram& h2)
+{
+  h1.swap(h2);
+}

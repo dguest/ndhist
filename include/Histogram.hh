@@ -57,7 +57,7 @@ public:
   Histogram(const Histogram&);
   Histogram(Histogram&&);
   Histogram& operator=(Histogram);
-
+  void swap(Histogram&);
   // destructor
   ~Histogram();
 
@@ -108,5 +108,8 @@ class HistogramSaveError: public std::runtime_error {
 public:
   HistogramSaveError(const std::string&);
 };
+
+// global swap
+void swap(Histogram&, Histogram&);
 
 #endif //HISTOGRAM_H
