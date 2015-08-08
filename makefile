@@ -6,9 +6,10 @@
 BUILD        := build
 BIN          := bin
 SRC          := src
-INC          := include
+INC          := include/ndhist
 PYTHON       := python
-LIB          := $(CURDIR)/lib
+LIBDIR       := $(CURDIR)/lib
+LIBNAME      := libndhist.so
 
 #  set search path
 vpath %.o    $(BUILD)
@@ -43,7 +44,7 @@ GEN_OBJ     := Histogram.o Binners.o
 EXE_OBJ      := test.o
 
 ALLOBJ       := $(GEN_OBJ) $(PY_OBJ) $(EXE_OBJ)
-ALLOUTPUT    := test $(LIB)/libndhist.so
+ALLOUTPUT    := test $(LIBDIR)/$(LIBNAME)
 
 all: $(ALLOUTPUT)
 
@@ -51,8 +52,8 @@ test: $(GEN_OBJ:%=$(BUILD)/%) $(EXE_OBJ:%=$(BUILD)/%)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS)
 
-$(LIB)/libndhist.so: $(GEN_OBJ:%=$(BUILD)/%)
-	@mkdir -p $(LIB)
+$(LIBDIR)/$(LIBNAME): $(GEN_OBJ:%=$(BUILD)/%)
+	@mkdir -p $(LIBDIR)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS) -shared
 
@@ -88,3 +89,19 @@ clean:
 
 rmdep:
 	rm -f $(DEP)/*.d
+
+# ----------------------------------------------------
+# install
+
+PREFIX?=/usr/local
+.PHONY: install remove
+install: all
+	cp $(LIBDIR)/$(LIBNAME) $(PREFIX)/lib
+	mkdir -p $(PREFIX)/include/ndhist
+	cp $(INC)/* $(PREFIX)/include/ndhist
+	cp $(BIN)/ndhist-config $(PREFIX)/bin
+
+remove:
+	rm $(PREFIX)/lib/$(LIBNAME)
+	rm -r $(PREFIX)/include/ndhist
+	rm $(PREFIX)/bin/ndhist-config
