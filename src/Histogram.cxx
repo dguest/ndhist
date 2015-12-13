@@ -1,6 +1,8 @@
 #include "Histogram.hh"
-#include "Binners.hh"
 #include "H5Cpp.h"
+
+#include "h5tools.hh"
+#include "Binners.hh"
 
 #include <stdexcept>
 #include <set>
@@ -276,15 +278,6 @@ namespace {
   //________________________________________________________________________
   // implementation of the attribute adder functions
 
-  // axis structure which is safe to store in HDF5
-  struct H5Axis {
-    const char* name;
-    int n_bins;
-    double min;
-    double max;
-    const char* units;
-  };
-
   // much less ugly function to add axis attributes as arrays.
   void add_axis_attributes(H5::DataSet& targ, const std::vector<Axis>& axes)
   {
@@ -304,18 +297,7 @@ namespace {
     hsize_t dim[] = {nax};
     H5::DataSpace space(1, dim);
 
-    // setup data type
-    auto stype = H5::StrType(H5::PredType::C_S1, H5T_VARIABLE);
-    stype.setCset(H5T_CSET_UTF8);
-    auto dtype = H5::PredType::NATIVE_DOUBLE;
-    auto itype = H5::PredType::NATIVE_INT;
-
-    H5::CompType type(sizeof(H5Axis));
-    type.insertMember("name",   HOFFSET(H5Axis, name  ), stype);
-    type.insertMember("n_bins", HOFFSET(H5Axis, n_bins), itype);
-    type.insertMember("min",    HOFFSET(H5Axis, min   ), dtype);
-    type.insertMember("max",    HOFFSET(H5Axis, max   ), dtype);
-    type.insertMember("units",  HOFFSET(H5Axis, units ), stype);
+    H5::CompType type = get_axis_type();
 
     // write the attribute
     auto attr = targ.createAttribute("axes", type, space);
