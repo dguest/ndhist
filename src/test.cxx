@@ -1,16 +1,19 @@
 #include "Histogram.hh"
 #include "Binners.hh"
+#include "Distribution.hh"
 #include "H5Cpp.h"
 #include <vector>
 
 int write_test();
 int binner_test();
 int error_checks();
+int read_test();
 
 int main(int narg, char* argv[]) {
   error_checks();
   binner_test();
   write_test();
+  read_test();
 }
 
 int error_checks() {
@@ -117,7 +120,7 @@ int write_test() {
   Histogram hist(dims, hist::eat_nan);
   Histogram copy_hist(hist);
   hist = copy_hist;
-  hist.fill(corrd);
+  hist.fill(corrd, 2);
   corrd["y"] -= 1;
   hist.fill(corrd);
   hist.fill(v_corrd);
@@ -132,5 +135,22 @@ int write_test() {
     printf("passed: %s\n", err.what());
   }
 
+  return 0;
+}
+
+int read_test() {
+  H5::H5File file("test.h5", H5F_ACC_RDONLY);
+  H5::DataSet ds = file.openDataSet("testhist");
+  Distribution dist(ds);
+
+  std::map<std::string, double> corrd;
+  corrd["x"] = 1.3;
+  corrd["y"] = 4.5;
+  corrd["z"] = 0.3;
+  if (dist.get(corrd) == 3) {
+    printf("passed: read test\n");
+  } else {
+    printf("failed: read broken\n");
+  }
   return 0;
 }
