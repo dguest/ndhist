@@ -66,7 +66,7 @@ Distribution::~Distribution() {
   delete m_binner;
 }
 
-double Distribution::get(const std::map<std::string, double>& point) {
+double Distribution::get(const std::map<std::string, double>& point) const {
   return m_values.at(m_binner->get_bin(point));
 }
 

@@ -24,7 +24,7 @@ public:
   Distribution& operator=(Distribution);
   void swap(Distribution&);
 
-  double get(const std::map<std::string, double>&);
+  double get(const std::map<std::string, double>&) const;
 private:
   IBinner* m_binner;
   std::vector<double> m_values;
