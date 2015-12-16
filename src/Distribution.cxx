@@ -10,6 +10,7 @@
 Distribution::Distribution(const H5::DataSet& ds):
   m_binner(0)
 {
+  // get space and attributes
   const H5::DataSpace space = ds.getSpace();
   int n_dims = space.getSimpleExtentNdims();
   const H5::Attribute axes_attr = ds.openAttribute("axes");
@@ -35,10 +36,40 @@ Distribution::Distribution(const H5::DataSet& ds):
   ds.read(m_values.data(), H5::PredType::NATIVE_DOUBLE);
 }
 
+Distribution::Distribution(const Distribution& old):
+  m_binner(0),
+  m_values(old.m_values)
+{
+  assert(old.m_binner);
+  m_binner = old.m_binner->clone();
+}
+
+Distribution::Distribution(Distribution&& old):
+  m_binner(old.m_binner),
+  m_values(std::move(old.m_values))
+{
+  old.m_binner = 0;
+}
+
+Distribution& Distribution::operator=(Distribution old) {
+  swap(old);
+  return *this;
+}
+
+void Distribution::swap(Distribution& old) {
+  using std::swap;
+  swap(m_binner, old.m_binner);
+  swap(m_values, old.m_values);
+}
+
 Distribution::~Distribution() {
   delete m_binner;
 }
 
 double Distribution::get(const std::map<std::string, double>& point) {
   return m_values.at(m_binner->get_bin(point));
+}
+
+void swap(Distribution& d1, Distribution& d2) {
+  d1.swap(d2);
 }

@@ -18,14 +18,18 @@ class Distribution
 public:
   Distribution(const H5::DataSet& ds);
   ~Distribution();
-  // TODO: make copy and assignment operator work
-  Distribution(Distribution&) = delete;
-  Distribution& operator=(Distribution) = delete;
+
+  Distribution(const Distribution&);
+  Distribution(Distribution&&);
+  Distribution& operator=(Distribution);
+  void swap(Distribution&);
 
   double get(const std::map<std::string, double>&);
 private:
   IBinner* m_binner;
   std::vector<double> m_values;
 };
+
+void swap(Distribution&, Distribution&);
 
 #endif

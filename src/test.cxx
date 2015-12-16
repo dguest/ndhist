@@ -140,8 +140,7 @@ int write_test() {
 
 int read_test() {
   H5::H5File file("test.h5", H5F_ACC_RDONLY);
-  H5::DataSet ds = file.openDataSet("testhist");
-  Distribution dist(ds);
+  Distribution dist(file.openDataSet("testhist"));
 
   std::map<std::string, double> corrd;
   corrd["x"] = 1.3;
