@@ -33,6 +33,8 @@ endif
 COMMON_LIBS   := $(HDF_PATH)/lib
 LIBS          := -L$(COMMON_LIBS) -Wl,-rpath,$(COMMON_LIBS)
 CXXFLAGS      += -I$(HDF_PATH)/include
+LIBS          += $(shell pkg-config hdf5 --libs 2> /dev/null)
+CXXFLAGS      += $(shell pkg-config hdf5 --cflags 2> /dev/null)
 
 LIBS += -lhdf5_cpp -lhdf5
 
