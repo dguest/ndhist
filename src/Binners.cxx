@@ -1,5 +1,5 @@
 #include "Binners.hh"
-#include <stdexcept>
+#include "Exceptions.hh"
 #include <algorithm>
 #include <cmath>
 
@@ -56,7 +56,8 @@ int LinBinner::get_bin(const std::map<std::string, double>& locator) const
   typedef std::map<std::string, double> DMap;
   DMap::const_iterator bin_itr = locator.find(m_name);
   if (bin_itr == locator.end()) {
-    throw std::runtime_error("could not find " + m_name + " in values given");
+    throw HistogramBinningError(
+      "could not find " + m_name + " in values given");
   }
   double value = bin_itr->second;
   int bin = get_bin(value);
@@ -73,7 +74,8 @@ int LinBinner::get_bin(const std::vector<double>& locator, size_t offset)
 {
   int index = locator.size() - offset - 1;
   if (index < 0) {
-    throw std::runtime_error("could not find " + m_name + " in values given");
+    throw HistogramBinningError(
+      "could not find " + m_name + " in values given");
   }
   double value = locator.at(index);
   int bin = get_bin(value);
@@ -88,7 +90,7 @@ int LinBinner::get_bin(const std::vector<double>& locator, size_t offset)
 int LinBinner::get_bin(double value) const
 {
   if (std::isnan(value)) {
-    throw std::range_error(m_name + " binner was passed NaN");
+    throw HistogramNanError(m_name + " binner was passed NaN");
   }
   int bin = 0;
   if (value < m_low) {

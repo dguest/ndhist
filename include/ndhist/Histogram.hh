@@ -27,7 +27,6 @@
 #include <string>
 #include <map>
 #include <initializer_list>
-#include <stdexcept>
 
 namespace H5 {
   class CommonFG;
@@ -103,11 +102,6 @@ private:
   std::string m_wt2_ext;
 };
 
-// exceptions
-class HistogramSaveError: public std::runtime_error {
-public:
-  HistogramSaveError(const std::string&);
-};
 
 // global swap
 void swap(Histogram&, Histogram&);

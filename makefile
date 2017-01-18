@@ -40,7 +40,7 @@ LIBS += -lhdf5_cpp -lhdf5
 
 # ---- define objects
 # - not-python
-GEN_OBJ     := Histogram.o Binners.o h5tools.o Distribution.o
+GEN_OBJ     := Histogram.o Binners.o h5tools.o Distribution.o Exceptions.o
 
 # - command line interface
 EXE_OBJ      := test.o

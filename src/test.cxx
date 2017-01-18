@@ -1,6 +1,7 @@
 #include "Histogram.hh"
 #include "Binners.hh"
 #include "Distribution.hh"
+#include "Exceptions.hh"
 #include "H5Cpp.h"
 #include <vector>
 

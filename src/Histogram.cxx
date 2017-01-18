@@ -3,8 +3,8 @@
 
 #include "h5tools.hh"
 #include "Binners.hh"
+#include "Exceptions.hh"
 
-#include <stdexcept>
 #include <set>
 #include <algorithm>
 #include <cassert>
@@ -318,12 +318,6 @@ namespace {
 
 }
 
-//______________________________________________________________________
-// exception definitions
-
-HistogramSaveError::HistogramSaveError(const std::string& what):
-  std::runtime_error(what)
-{}
 
 // ____________________________________________________________________
 // swap
