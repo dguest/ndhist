@@ -88,7 +88,7 @@ int LinBinner::get_bin(const std::vector<double>& locator, size_t offset)
 int LinBinner::get_bin(double value) const
 {
   if (std::isnan(value)) {
-    throw std::range_error("binner was passed NaN");
+    throw std::range_error(m_name + " binner was passed NaN");
   }
   int bin = 0;
   if (value < m_low) {
